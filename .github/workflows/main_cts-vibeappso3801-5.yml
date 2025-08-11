@@ -1,47 +1,43 @@
-trigger:
-  - main
- 
-pool:
-  vmImage: ubuntu-latest
- 
-steps:
-  # 1️⃣ Setup Node.js
-  - task: NodeTool@0
-    inputs:
-      versionSpec: '22.x'
- 
-  # 2️⃣ Build frontend
-  - script: |
-      echo "=== Installing and building frontend ==="
-      npm install --prefix frontend
-      npm run build --prefix frontend
-    displayName: 'Build Frontend'
- 
-  # 3️⃣ Create backend/public and copy build
-  - script: |
-      echo "=== Copying frontend build into backend/public ==="
-      mkdir -p backend/public
-      cp -r frontend/build/* backend/public/
-    displayName: 'Prepare Backend Public Folder'
- 
-  # 4️⃣ Install backend dependencies
-  - script: |
-      echo "=== Installing backend dependencies ==="
-      npm install --prefix backend
-    displayName: 'Install Backend Dependencies'
- 
-  # 5️⃣ Archive backend for deployment
-  - task: ArchiveFiles@2
-    inputs:
-      rootFolderOrFile: 'backend'
-      includeRootFolder: false
-      archiveType: zip
-      archiveFile: $(Build.ArtifactStagingDirectory)/app.zip
-      replaceExistingArchive: true
- 
-  # 6️⃣ Deploy to Azure App Service
-  - task: AzureWebApp@1
-    inputs:
-      azureSubscription: 'cb6255853a-vibecode03-az'
-      appName: 'CTS-VibeAppso3801-5'
-package: $(Build.ArtifactStagingDirectory)/app.zip
+name: Build and Deploy to Azure Web App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+
+      - name: Install and build frontend
+        run: |
+          echo "=== Installing and building frontend ==="
+          npm install --prefix frontend
+          npm run build --prefix frontend
+
+      - name: Copy frontend build to backend/public
+        run: |
+          echo "=== Copying frontend build into backend/public ==="
+          mkdir -p backend/public
+          cp -r frontend/build/* backend/public/
+
+      - name: Install backend dependencies
+        run: |
+          echo "=== Installing backend dependencies ==="
+          npm install --prefix backend
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'CTS-VibeAppso3801-5'
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_36BA900ACACA403386F9C8DBBE9E58B8 }}
+          package: ./backend
+    
