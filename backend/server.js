@@ -3,6 +3,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const path= require('path');
 
+console.log('PORT env:', process.env.PORT);
 
 const app = express();
 const port = process.env.PORT || 8080;
