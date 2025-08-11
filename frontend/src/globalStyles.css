@@ -1,0 +1,206 @@
+/* Modern Global Styles for Leave Tracker */
+:root {
+  --primary-gradient: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); /* Smooth purple-pink gradient */
+  --primary-bg: #f7fafd;
+  --card-bg: #fff;
+  --card-shadow: 0 4px 24px 0 rgba(60,60,60,0.09);
+  --primary-blue: #1976d2;
+  --primary-purple: #7f53ac;
+  --primary-teal: #36d1c4;
+  --primary-green: #43a047;
+  --primary-yellow: #ffe082;
+  --primary-red: #e57373;
+  --primary-grey: #ececec;
+  --font-family: 'Inter', 'Roboto', 'Segoe UI', 'Poppins', Arial, sans-serif;
+}
+body {
+  background: var(--primary-gradient);
+  font-family: var(--font-family);
+  margin: 0;
+  min-height: 100vh;
+}
+.card {
+  background: var(--card-bg);
+  border-radius: 18px;
+  box-shadow: var(--card-shadow);
+  padding: 24px;
+  margin-bottom: 24px;
+  transition: box-shadow 0.2s;
+}
+.card:hover {
+  box-shadow: 0 8px 32px 0 rgba(60,60,60,0.14);
+}
+.page-heading {
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 18px;
+  color: #222;
+  letter-spacing: 0.5px;
+  font-family: 'Inter', 'Roboto', 'Segoe UI', 'Poppins', Arial, sans-serif;
+  animation: fadeIn 0.8s;
+}
+.subheading {
+  font-size: 18px;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 10px;
+  font-family: 'Inter', 'Roboto', 'Segoe UI', 'Poppins', Arial, sans-serif;
+  animation: fadeIn 0.8s;
+}
+.table {
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--card-bg);
+  box-shadow: var(--card-shadow);
+  font-size: 14px;
+  font-family: 'Inter', 'Roboto', 'Segoe UI', 'Poppins', Arial, sans-serif;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.table th, .table td {
+  font-size: 14px;
+  font-family: 'Inter', 'Roboto', 'Segoe UI', 'Poppins', Arial, sans-serif;
+  border-right: 1px solid #ececec;
+}
+.table th:last-child, .table td:last-child {
+  border-right: none;
+}
+.table tr:nth-child(even) {
+  background: #f4f7fa;
+}
+.table tr:hover {
+  background: #ede7f6;
+  transition: background 0.2s;
+}
+@media (max-width: 900px) {
+  .table, .table thead, .table tbody, .table th, .table td, .table tr {
+    display: block;
+    width: 100%;
+  }
+  .table th, .table td {
+    box-sizing: border-box;
+    border-right: none;
+    border-bottom: 1px solid #ececec;
+    padding-left: 40%;
+    position: relative;
+    min-height: 44px;
+  }
+  .table th {
+    background: var(--primary-gradient);
+    color: #fff;
+  }
+  .table td:before {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    white-space: nowrap;
+    font-weight: 700;
+    color: #888;
+    content: attr(data-label);
+  }
+}
+.button-icon {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 8px;
+  font-size: 18px;
+  vertical-align: middle;
+}
+
+.label, .tooltip, .fade-label {
+  transition: color 0.2s, background 0.2s, opacity 0.4s;
+  opacity: 0.9;
+  animation: fadeIn 0.7s;
+}
+.label:hover, .tooltip:hover, .fade-label:hover {
+  opacity: 1;
+  color: #6a479c;
+  background: #f3eaff;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.table th {
+  background: var(--primary-gradient);
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+}
+.table tr:nth-child(even) {
+  background: #f4f7fa;
+}
+.table tr:hover {
+  background: #e3f2fd;
+  transition: background 0.2s;
+}
+.table td, .table th {
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--primary-grey);
+}
+.button-primary {
+  background: var(--primary-gradient);
+  color: #fff;
+  border: none;
+  border-radius: 24px;
+  font-weight: 700;
+  font-size: 16px;
+  padding: 10px 28px;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px 0 rgba(60,60,60,0.08);
+  cursor: pointer;
+}
+.button-primary:hover {
+  background: linear-gradient(135deg, #36d1c4 0%, #5b86e5 100%);
+  box-shadow: 0 4px 16px 0 rgba(60,60,60,0.14);
+}
+.button-secondary {
+  background: #ececec;
+  color: #555;
+  border: none;
+  border-radius: 24px;
+  font-weight: 600;
+  font-size: 16px;
+  padding: 10px 28px;
+  margin-left: 10px;
+  transition: background 0.2s, color 0.2s;
+  cursor: pointer;
+}
+.button-secondary:hover {
+  background: #d7e4ed;
+  color: #1976d2;
+}
+input, select, .pill-input {
+  border-radius: 24px;
+  border: 1px solid #d7e4ed;
+  padding: 10px 18px;
+  font-size: 15px;
+  font-family: var(--font-family);
+  outline: none;
+  transition: border 0.2s;
+}
+input:focus, select:focus, .pill-input:focus {
+  border: 1.5px solid #36d1c4;
+}
+.pill-input {
+  background: #f4f7fa;
+  box-shadow: 0 2px 8px 0 rgba(60,60,60,0.04);
+}
+::-webkit-scrollbar {
+  width: 8px;
+  background: #f4f7fa;
+}
+::-webkit-scrollbar-thumb {
+  background: #d7e4ed;
+  border-radius: 8px;
+}
+.fade-in {
+  animation: fadeIn 0.7s;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

@@ -1,0 +1,22 @@
+[
+  { "occasion": "New Year", "date": "2025-01-01", "locations": ["Kochi", "Bangalore", "Chennai", "Pune", "etc."] },
+  { "occasion": "Pongal / Makar Sankranti", "date": "2025-01-14", "locations": ["Chennai", "Coimbatore", "Kochi"] },
+  { "occasion": "Maha Shivratri", "date": "2025-02-26", "locations": ["Indore", "Ahmedabad", "Kolkata"] },
+  { "occasion": "Holi / Dola Purnima", "date": "2025-03-14", "locations": ["Kochi", "Pune", "Bangalore", "etc."] },
+  { "occasion": "Ramzan (Id-ul-Fitr)", "date": "2025-03-31", "locations": ["Chennai", "Hyderabad", "Mumbai", "etc."] },
+  { "occasion": "Tamil New Year / Vishu", "date": "2025-04-14", "locations": ["Chennai", "Coimbatore", "Kochi"] },
+  { "occasion": "Good Friday", "date": "2025-04-18", "locations": ["Chennai", "Coimbatore"] },
+  { "occasion": "May Day", "date": "2025-05-01", "locations": ["All major cities"] },
+  { "occasion": "Telangana Formation Day", "date": "2025-06-02", "locations": ["Hyderabad"] },
+  { "occasion": "Ratha Yatra", "date": "2025-06-27", "locations": ["Bhubaneswar"] },
+  { "occasion": "Independence Day (National)", "date": "2025-08-15", "locations": ["All cities"], "national": true },
+  { "occasion": "Ganesh Chaturthi", "date": "2025-08-27", "locations": ["All cities"] },
+  { "occasion": "First Onam", "date": "2025-09-04", "locations": ["Kochi"] },
+  { "occasion": "Thiruvonam", "date": "2025-09-05", "locations": ["Kochi"] },
+  { "occasion": "Mahanavami / Ayudha Pooja", "date": "2025-10-01", "locations": ["Chennai", "Kolkata", "Kochi"] },
+  { "occasion": "Gandhi Jayanti (National)", "date": "2025-10-02", "locations": ["All cities"], "national": true },
+  { "occasion": "Diwali / Kali Puja", "date": "2025-10-20", "locations": ["Kochi", "Mumbai", "Chennai", "etc."] },
+  { "occasion": "Diwali Amavasya (Lakshmi Pujan)", "date": "2025-10-21", "locations": ["Mumbai", "Pune", "Ahmedabad"] },
+  { "occasion": "Diwali (Bali Pratipada)", "date": "2025-10-22", "locations": ["Mumbai", "Pune"] },
+  { "occasion": "Christmas", "date": "2025-12-25", "locations": ["All cities"] }
+]
