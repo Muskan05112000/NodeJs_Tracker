@@ -36,7 +36,7 @@ steps:
       rootFolderOrFile: 'backend'
       includeRootFolder: false
       archiveType: zip
-archiveFile: $(Build.ArtifactStagingDirectory)/app.zip
+      archiveFile: $(Build.ArtifactStagingDirectory)/app.zip
       replaceExistingArchive: true
  
   # 6️⃣ Deploy to Azure App Service
