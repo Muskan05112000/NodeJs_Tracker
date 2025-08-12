@@ -26,6 +26,9 @@ jobs:
       - name: Clean backend/public
         run: rm -rf backend/public/*
 
+      - name: Ensure backend/public exists
+        run: mkdir -p backend/public
+
       - name: Copy frontend build to backend/public
         run: cp -r frontend/build/* backend/public/
 
