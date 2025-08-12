@@ -23,16 +23,28 @@ jobs:
           npm install --prefix frontend
           npm run build --prefix frontend
 
+      - name: Clean backend/public
+        run: rm -rf backend/public/*
+
       - name: Copy frontend build to backend/public
-        run: |
-          echo "=== Copying frontend build into backend/public ==="
-          mkdir -p backend/public
-          cp -r frontend/build/* backend/public/
+        run: cp -r frontend/build/* backend/public/
 
       - name: Install backend dependencies
         run: |
           echo "=== Installing backend dependencies ==="
           npm install --prefix backend
+
+      - name: Upload backend as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-artifact
+          path: backend
+
+      - name: Download backend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-artifact
+          path: downloaded-backend
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
