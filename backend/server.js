@@ -1,20 +1,23 @@
+console.log('ALL ENVIRONMENT VARIABLES:', process.env);
+console.log('PORT env:', process.env.PORT);
+
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const path= require('path');
 
 //Serve the frontend from backend/public
-app.use(express.static(path.join(__dirname, 'public')));
+//app.use(express.static(path.join(__dirname, 'public')));
 
 //Example API route
-app.get('/api',(req,res)=>{
-  res.json({message:'API is running'});
-});
+//app.get('/api',(req,res)=>{
+//  res.json({message:'API is running'});
+//});
 
 //all other requests go to the index.html
-app.get('*',(req,res)=>{
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+//app.get('*',(req,res)=>{
+  //res.sendFile(path.join(__dirname, 'public', 'index.html'));
+//});
 console.log('PORT env:', process.env.PORT);
 
 const app = express();
