@@ -6,24 +6,31 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const path= require('path');
 
-// Serve the frontend from backend/public
-app.use(express.static(path.join(__dirname, 'public')));
+const app = express(); // <-- Initialize app before use
+
+// CORS configuration to allow local dev and Netlify
+app.use(cors({
+  origin: ['http://localhost:3000', 'https://leavetrack.netlify.app'],
+  credentials: true
+}));
+
+// Serve the frontend from backend/public (DISABLED FOR DEVELOPMENT)
+// app.use(express.static(path.join(__dirname, 'public')));
 
 // Example API route
 // app.get('/api',(req,res)=>{
 //   res.json({message:'API is running'});
 // });
 
-// All other requests go to the index.html (for React Router)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+// All other requests go to the index.html (for React Router) (DISABLED FOR DEVELOPMENT)
+// app.get('*', (req, res) => {
+//   res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// });
 console.log('PORT env:', process.env.PORT);
 
-const app = express();
-const port = process.env.PORT || 8080;
+const port = 4000;
 app.listen(port, '0.0.0.0', () => {
-  console.log(`Backend server running on http://localhost:${port}`);
+  console.log(`Backend server running on http://localhost:4000`);
 });
 
 // Log all requests and bodies for debugging
@@ -39,7 +46,7 @@ app.use(express.json());
 app.use('/api', authRouter);
 
 // Serve static files from the React app build folder
-const path = require('path');
+//const path = require('path');
 app.use(express.static(path.join(__dirname, '../frontend/build')));
 
 // --- Employees ---

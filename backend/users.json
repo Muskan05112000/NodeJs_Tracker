@@ -1,5 +1,6 @@
 [
   { "username": "employee1", "password": "pass", "role": "Employee" },
   { "username": "manager1", "password": "pass", "role": "Manager" },
-  { "username": "lead1", "password": "pass", "role": "Lead" }
+  { "username": "lead1", "password": "pass", "role": "Lead" },
+  { "username": "muskan", "password": "Manager@2024", "role": "Lead" }
 ]
