@@ -288,4 +288,9 @@ app.delete('/api/leaves/:id', async (req, res) => {
   res.status(204).end();
 });
 
+const port = process.env.PORT || 4000;
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Backend server running on http://localhost:${port}`);
+});
+
 
