@@ -17,40 +17,20 @@ app.use(cors({
   credentials: true
 }));
 
-// Serve the frontend from backend/public (DISABLED FOR DEVELOPMENT)
-// app.use(express.static(path.join(__dirname, 'public')));
-
-// Example API route
-// app.get('/api',(req,res)=>{
-//   res.json({message:'API is running'});
-// });
-
-// All other requests go to the index.html (for React Router) (DISABLED FOR DEVELOPMENT)
-// app.get('*', (req, res) => {
-//   res.sendFile(path.join(__dirname, 'public', 'index.html'));
-// });
-console.log('PORT env:', process.env.PORT);
-
-const port = 4000;
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Backend server running on http://localhost:4000`);
-});
+app.use(express.json());
 
 // Log all requests and bodies for debugging
 app.use((req, res, next) => {
   console.log('Request:', req.method, req.url, req.headers['content-type'], req.body);
   next();
 });
+
 const { sendWeeklyLeaveMail } = require('./sendMail');
 const authRouter = require('./auth');
-
-app.use(cors());
-app.use(express.json());
 app.use('/api', authRouter);
 
-// Serve static files from the React app build folder
-//const path = require('path');
-app.use(express.static(path.join(__dirname, '../frontend/build')));
+// (Optional) Serve static files from the React app build folder if you ever combine frontend+backend
+// app.use(express.static(path.join(__dirname, '../frontend/build')));
 
 // --- Employees ---
 app.get('/api/employees', async (req, res) => {
