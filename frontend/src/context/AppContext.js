@@ -2,10 +2,7 @@ import React, { createContext, useState, useEffect } from "react";
 
 export const AppContext = createContext();
 // It has been changed
-const API_BASE =
-  process.env.NODE_ENV === 'production'
-    ? 'https://cts-vibeappso3801-5.azurewebsites.net/api'
-    : (process.env.REACT_APP_API_URL || '/api');
+const API_BASE = process.env.REACT_APP_API_URL || '/api';
 console.log('DEBUG API_BASE is:', API_BASE, '<<<<<');
 
 export const AppProvider = ({ children }) => {
