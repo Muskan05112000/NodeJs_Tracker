@@ -10,7 +10,10 @@ const app = express(); // <-- Initialize app before use
 
 // CORS configuration to allow local dev and Netlify
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://leavetrack.netlify.app'],
+  origin: [
+    'http://localhost:3000', // local dev
+    'https://node-js-tracker.vercel.app' // Vercel frontend
+  ],
   credentials: true
 }));
 
