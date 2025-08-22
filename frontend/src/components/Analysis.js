@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import * as XLSX from 'xlsx';
 import { Box, Button, Paper, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Snackbar, Alert } from "@mui/material";
+import MenuItem from '@mui/material/MenuItem';
 import SendMailDialog from "./SendMailDialog";
 import AnalysisCharts from "./AnalysisCharts";
 import AnalysisTable from "./AnalysisTable";
@@ -156,7 +157,7 @@ const Analysis = () => {
             sx={{ mb: 2 }}
           >
             {Array.from({ length: getWeeksInMonth(month, year) }, (_, i) => (
-              <option key={i+1} value={i+1}>{`Week ${i+1}`}</option>
+              <MenuItem key={i+1} value={i+1}>{`Week ${i+1}`}</MenuItem>
             ))}
           </TextField>
         </DialogContent>
@@ -216,7 +217,7 @@ const Analysis = () => {
           <Button
             variant="contained"
             sx={{ bgcolor: '#00c853', color: '#fff', fontWeight: 700, fontSize: 18, px: 4, py: 1.5, borderRadius: 4, boxShadow: 2, textTransform: 'none', letterSpacing: 0.3, display: 'flex', alignItems: 'center', gap: 1 }}
-            onClick={handleDownloadExcel}
+            onClick={() => setExcelModalOpen(true)}
             startIcon={<span style={{ display: 'flex', alignItems: 'center', marginRight: 8 }}><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24"><path fill="#fff" d="M5 20h14v-2H5v2zM7 4h10v2H7V4zm5 4c-1.1 0-2 .9-2 2v6h2v-6h2v6h2v-6c0-1.1-.9-2-2-2z"/></svg></span>}
           >
             Download Excel
