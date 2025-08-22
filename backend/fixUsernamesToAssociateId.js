@@ -1,9 +1,10 @@
+require('dotenv').config();
 // fixUsernamesToAssociateId.js
 const mongoose = require('mongoose');
 const Employee = require('./models/Employee');
 const User = require('./models/User');
 
-const MONGO_URI = 'mongodb+srv://Admin:Admin@cluster0.ge3ezsi.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
+const MONGO_URI = process.env.MONGO_URI;
 
 async function fixUsernames() {
   await mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });

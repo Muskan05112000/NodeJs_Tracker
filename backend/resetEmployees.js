@@ -1,8 +1,9 @@
+require('dotenv').config();
 // resetEmployees.js
 const mongoose = require('mongoose');
 const Employee = require('./models/Employee');
 
-const MONGO_URI = 'mongodb+srv://Admin:Admin@cluster0.ge3ezsi.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
+const MONGO_URI = process.env.MONGO_URI;
 
 // Example seed data - update as needed
 const seedEmployees = [

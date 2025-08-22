@@ -1,8 +1,9 @@
+require('dotenv').config();
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const User = require('./models/User');
 
-const MONGO_URI = 'mongodb+srv://Admin:Admin@cluster0.ge3ezsi.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
+const MONGO_URI = process.env.MONGO_URI;
 
 const Employee = require('./models/Employee');
 
@@ -26,7 +27,7 @@ async function seed() {
     let role = emp.role || 'Employee';
     if (emp.name === 'Veena Shagi') role = 'Manager';
     if (emp.name === 'Muskan') role = 'Lead';
-    const password = role === 'Employee' ? 'Welcome@123' : 'Manager@2024';
+    const password = role === 'Employee' ? process.env.EMPLOYEE_PASSWORD : process.env.MANAGER_PASSWORD;
     users.push({ username, password: await bcrypt.hash(password, 10), role });
   }
   await User.insertMany(users);
