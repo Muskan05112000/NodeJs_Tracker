@@ -1,6 +1,7 @@
 import React, { useState, useContext } from "react";
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, MenuItem, Select, InputLabel, FormControl, Box } from "@mui/material";
 import { AppContext } from "../context/AppContext";
+import { useAuth } from "../context/AuthContext";
 
 const leaveTypes = [
   { value: "None", label: "None" },
@@ -11,6 +12,9 @@ const leaveTypes = [
 
 function LeaveModal({ open, onClose, selectedDates, editingLeave, onSubmit, onRevoke, onEdit, leavesForDate = [] }) {
   const { employees } = useContext(AppContext);
+  const { user } = useAuth();
+  // Find the logged-in employee by associateId
+  const loggedInEmployee = employees.find(emp => String(emp.associateId) === String(user?.associateId));
   // If only one leave for the date, prefill. Otherwise, let user select.
   // Track which leave is selected for editing if multiple
   const [selectedLeaveId, setSelectedLeaveId] = useState(editingLeave?._id || (leavesForDate?.length === 1 ? leavesForDate[0]._id : "none"));
@@ -125,7 +129,13 @@ function LeaveModal({ open, onClose, selectedDates, editingLeave, onSubmit, onRe
              }}>
               <MenuItem value="none">None</MenuItem>
               {employees.map(emp => (
-                <MenuItem key={emp._id || emp.name} value={emp.name}>{emp.name}</MenuItem>
+                <MenuItem
+                  key={emp._id || emp.name}
+                  value={emp.name}
+                  disabled={!(loggedInEmployee && emp.name === loggedInEmployee.name)}
+                >
+                  {emp.name}
+                </MenuItem>
               ))}
             </Select>
           </FormControl>

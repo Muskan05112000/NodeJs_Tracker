@@ -49,12 +49,30 @@ const Login = ({ loggedOut }) => {
           required
           style={{ fontSize: 17, borderRadius: 8, border: '1.5px solid #b39ddb', padding: '10px 18px', fontFamily: 'Inter, Roboto, Segoe UI, Arial, sans-serif' }}
         />
-        <button type="submit" style={{ background: 'var(--primary-gradient)', color: '#fff', fontWeight: 700, fontSize: 17, border: 'none', borderRadius: 8, padding: '12px 0', cursor: 'pointer', marginTop: 10 }} disabled={loading}>
-          {loading ? 'Logging in...' : 'Login'}
+        <button type="submit" style={{ background: 'var(--primary-gradient)', color: '#fff', fontWeight: 700, fontSize: 17, border: 'none', borderRadius: 8, padding: '12px 0', cursor: loading ? 'not-allowed' : 'pointer', marginTop: 10, opacity: loading ? 0.7 : 1, transition: 'opacity 0.2s' }} disabled={loading}>
+          Login
         </button>
-        {error && <div style={{ color: '#d32f2f', fontWeight: 600, textAlign: 'center' }}>{error}</div>}
-        {success && <div style={{ color: '#388e3c', fontWeight: 600, textAlign: 'center' }}>Login successful! Redirecting...</div>}
-        
+        {loading && (
+          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', margin: '28px 0 10px 0', minHeight: 56 }}>
+            <div className="spinner-auth spinner-shimmer" style={{ marginRight: 18 }}></div>
+            <span className="authenticating-text" style={{
+              fontWeight: 700,
+              color: 'linear-gradient(90deg, #7c4dff 0%, #6c63ff 100%)',
+              fontSize: 19,
+              letterSpacing: 0.2,
+              fontFamily: 'Inter, Segoe UI, Roboto, Arial, sans-serif',
+              animation: 'fadeInAuthText 0.7s',
+              background: 'linear-gradient(90deg, #7c4dff 0%, #6c63ff 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              display: 'inline-block'
+            }}>
+              Authenticating your account...
+            </span>
+          </div>
+        )}
+        {error && !loading && <div style={{ color: '#d32f2f', fontWeight: 600, textAlign: 'center' }}>{error}</div>}
+        {success && !loading && <div style={{ color: '#388e3c', fontWeight: 600, textAlign: 'center' }}>Login successful! Redirecting...</div>}
       </form>
     </div>
   );
