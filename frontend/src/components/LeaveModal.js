@@ -128,15 +128,20 @@ function LeaveModal({ open, onClose, selectedDates, editingLeave, onSubmit, onRe
                setSelectedLeaveId("none");
              }}>
               <MenuItem value="none">None</MenuItem>
-              {employees.map(emp => (
-                <MenuItem
-                  key={emp._id || emp.name}
-                  value={emp.name}
-                  disabled={!(loggedInEmployee && emp.name === loggedInEmployee.name)}
-                >
-                  {emp.name}
-                </MenuItem>
-              ))}
+              {employees.map(emp => {
+  // Enable all employees for Manager/Lead, else only self
+  const isManagerOrLead = user && (user.role === 'Manager' || user.role === 'Lead');
+  const isSelf = loggedInEmployee && emp.name === loggedInEmployee.name;
+  return (
+    <MenuItem
+      key={emp._id || emp.name}
+      value={emp.name}
+      disabled={!(isManagerOrLead || isSelf)}
+    >
+      {emp.name}
+    </MenuItem>
+  );
+})}
             </Select>
           </FormControl>
           <FormControl fullWidth>
