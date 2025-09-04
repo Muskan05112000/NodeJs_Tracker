@@ -7,7 +7,7 @@ function AnalysisTable() {
   const { employees, leaves } = useContext(AppContext);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [selectedEmployee, setSelectedEmployee] = useState('None');
+  const [selectedEmployee, setSelectedEmployee] = useState('All');
   const [startMonth, setStartMonth] = useState(new Date().getMonth());
   const [endMonth, setEndMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -68,7 +68,6 @@ function AnalysisTable() {
               transition: 'box-shadow 0.18s, border-color 0.18s',
             }}
           >
-            <MenuItem value="None">None</MenuItem>
             <MenuItem value="All">All</MenuItem>
             {employees.map(emp => (
               <MenuItem key={emp.name} value={emp.name} sx={{ fontWeight: 700, fontSize: 16 }}>{emp.name}</MenuItem>
