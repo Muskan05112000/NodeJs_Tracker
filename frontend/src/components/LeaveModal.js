@@ -148,26 +148,37 @@ function LeaveModal({ open, onClose, selectedDates, editingLeave, onSubmit, onRe
             <InputLabel>Type of Leave</InputLabel>
             <Select value={type} label="Type of Leave" onChange={e => setType(e.target.value)}>
               {leaveTypes.map(opt => {
-  let disablePlanned = false;
-  if (opt.value === 'Planned') {
-    // If at least one selected date is in the current month and today > 7, disable Planned Leave
-    if (selectedDates && selectedDates.length > 0) {
-      const today = new Date();
-      const currentMonth = today.getMonth();
-      const currentYear = today.getFullYear();
-      // Check if any selected date is in current month/year
-      const isCurrentMonthSelected = selectedDates.some(dateStr => {
-        const dateObj = new Date(dateStr);
-        return (
-          dateObj.getMonth() === currentMonth &&
-          dateObj.getFullYear() === currentYear
-        );
-      });
-      if (isCurrentMonthSelected && today.getDate() > 7) {
-        disablePlanned = true;
-      }
-    }
-  }
+   let disablePlanned = false;
+   if (opt.value === 'Planned') {
+     if (selectedDates && selectedDates.length > 0) {
+       const today = new Date();
+       const currentMonth = today.getMonth();
+       const currentYear = today.getFullYear();
+       // If any selected date is in a previous month/year, disable Planned Leave
+       const isPreviousMonthSelected = selectedDates.some(dateStr => {
+         const dateObj = new Date(dateStr);
+         return (
+           dateObj.getFullYear() < currentYear ||
+           (dateObj.getFullYear() === currentYear && dateObj.getMonth() < currentMonth)
+         );
+       });
+       if (isPreviousMonthSelected) {
+         disablePlanned = true;
+       } else {
+         // If at least one selected date is in the current month and today > 7, disable Planned Leave
+         const isCurrentMonthSelected = selectedDates.some(dateStr => {
+           const dateObj = new Date(dateStr);
+           return (
+             dateObj.getMonth() === currentMonth &&
+             dateObj.getFullYear() === currentYear
+           );
+         });
+         if (isCurrentMonthSelected && today.getDate() > 7) {
+           disablePlanned = true;
+         }
+       }
+     }
+   }
   return (
     <MenuItem key={opt.value} value={opt.value} disabled={disablePlanned}>{opt.label}</MenuItem>
   );

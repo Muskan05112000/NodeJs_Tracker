@@ -112,11 +112,13 @@ const Users = () => {
                 sx={{
                   cursor: 'pointer',
                   background: editUser?.name === emp.name
-                    ? 'linear-gradient(90deg, #ede7f6 0%, #fff 100%)'
+                    ? 'linear-gradient(90deg, #7c4dff 0%, #b388ff 100%)' // More bold purple for selected row
                     : (idx % 2 === 0 ? 'rgba(124,77,255,0.03)' : 'rgba(179,136,255,0.03)'),
                   transition: 'background 0.2s, box-shadow 0.2s',
                   '&:hover': {
-                    background: 'linear-gradient(90deg, #ede7f6 0%, #fff 100%)',
+                    background: editUser?.name === emp.name
+                      ? 'linear-gradient(90deg, #7c4dff 0%, #b388ff 100%)' // Always show selected color when selected and hovered
+                      : 'linear-gradient(90deg, #b388ff 0%, #7c4dff 100%)', // More distinct purple for hover
                     boxShadow: 4,
                   },
                   borderRadius: 3,
@@ -127,7 +129,14 @@ const Users = () => {
                 <TableCell sx={{ fontWeight: 700, fontSize: 18, color: '#4b2aad', border: 0, fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif' }}>{emp.associateId && typeof emp.associateId === 'object' && emp.associateId.$numberLong ? emp.associateId.$numberLong : emp.associateId || '-'}</TableCell>
                 <TableCell sx={{ fontWeight: 700, fontSize: 18, color: '#4b2aad', border: 0, fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif' }}>{emp.name}</TableCell>
                 <TableCell sx={{ fontWeight: 500, fontSize: 17, color: '#6a479c', border: 0, fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif' }}>{emp.location}</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: 17, color: '#7c4dff', border: 0, fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif' }}>{emp.team}</TableCell>
+                <TableCell sx={{ fontWeight: 600, fontSize: 17, color: editUser?.name === emp.name ? '#fff' : undefined, border: 0, fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif', transition: 'color 0.2s',
+  '&.MuiTableCell-root': {
+    color: 'inherit',
+  },
+  '&:hover': {
+    color: '#fff',
+  }
+}}>{emp.team}</TableCell>
               </TableRow>
             ))}
           </TableBody>

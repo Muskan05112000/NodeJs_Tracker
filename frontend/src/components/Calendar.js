@@ -38,6 +38,7 @@ function Calendar({
       const dayLeaves = leaves.filter(l => l.date === formattedDate);
       const isSelected = selectedDates.includes(formattedDate);
       const isInCurrentMonth = day.getMonth() === month;
+      const isWeekend = day.getDay() === 0 || day.getDay() === 6;
       weekCells.push({
         key: formattedDate,
         isSelected,
@@ -46,7 +47,8 @@ function Calendar({
         holiday,
         dayLeaves,
         dayObj: new Date(day),
-        isInCurrentMonth
+        isInCurrentMonth,
+        isWeekend
       });
       day = addDays(day, 1);
     }
@@ -62,15 +64,22 @@ function Calendar({
         cell.isInCurrentMonth ? (
           <div
             key={cell.key}
-            className={`calendar-cell${cell.isSelected ? ' selected' : ''}${cell.isNational ? ' national' : ''}`}
+            className={`calendar-cell${cell.isSelected ? ' selected' : ''}${cell.isNational ? ' national' : ''}${cell.isWeekend ? ' weekend' : ''}`}
             style={{
-              background: cell.isNational ? 'rgba(255, 241, 118, 0.72)' : cell.isRegional ? 'rgba(100, 181, 246, 0.68)' : 'rgba(255,255,255,0.38)',
+              background: cell.isWeekend
+                ? 'linear-gradient(135deg, #ede7f6 0%, #d1c4e9 100%)' // Soft purple gradient for weekends
+                : cell.isNational
+                  ? 'rgba(255, 241, 118, 0.72)'
+                  : cell.isRegional
+                    ? 'rgba(100, 181, 246, 0.68)'
+                    : 'rgba(255,255,255,0.38)',
               border: cell.isSelected ? '2.5px solid #7c4dff' : '1.5px solid #c7b6fa',
               boxShadow: cell.isSelected ? '0 0 16px 2px #b39ddb, 0 2px 12px 0 rgba(124,77,255,0.10)' : '0 2px 10px 0 rgba(124,77,255,0.08)',
               backdropFilter: 'blur(8px)',
-              opacity: cell.isNational ? 0.7 : 1,
-              cursor: 'pointer',
+              opacity: cell.isWeekend ? 0.5 : cell.isNational ? 0.7 : 1,
+              cursor: cell.isWeekend ? 'not-allowed' : 'pointer',
               borderRadius: 12,
+              pointerEvents: cell.isWeekend ? 'none' : 'auto', // disables hover for weekends
               fontFamily: 'Roboto, Inter, Arial, sans-serif',
               padding: 9,
               display: 'flex',
@@ -91,17 +100,16 @@ function Calendar({
               maxHeight: '100%',
               position: 'relative',
             }}
-            onMouseEnter={e => {
+            onMouseEnter={cell.isWeekend ? undefined : (e => {
               e.currentTarget.style.boxShadow = '0 0 20px 4px #b388ff, 0 4px 24px 0 rgba(124,77,255,0.17)';
               e.currentTarget.style.background = cell.isNational ? 'rgba(255, 241, 118, 0.82)' : cell.isRegional ? 'rgba(100, 181, 246, 0.78)' : 'rgba(140, 97, 255, 0.10)';
-            }}
-            onMouseLeave={e => {
+            })}
+            onMouseLeave={cell.isWeekend ? undefined : (e => {
               e.currentTarget.style.boxShadow = cell.isSelected ? '0 0 16px 2px #b39ddb, 0 2px 12px 0 rgba(124,77,255,0.10)' : '0 2px 10px 0 rgba(124,77,255,0.08)';
               e.currentTarget.style.background = cell.isNational ? 'rgba(255, 241, 118, 0.72)' : cell.isRegional ? 'rgba(100, 181, 246, 0.68)' : 'rgba(255,255,255,0.38)';
-            }}
-            onClick={e => {
-              // Only open modal if clicking on blank space (not a leave entry)
-              if (e.target === e.currentTarget) {
+            })}
+            onClick={() => {
+              if (!cell.isWeekend && onDateClick) {
                 onDateClick(cell.key, cell.isNational);
               }
             }}

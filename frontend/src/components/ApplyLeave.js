@@ -20,6 +20,11 @@ const ApplyLeave = () => {
   const monthLeaves = leaves.filter(l => l.date.startsWith(monthStr));
 
   const handleDateClick = (date, isNational) => {
+    // Prevent opening modal for weekends
+    const dayObj = new Date(date);
+    if (dayObj.getDay() === 0 || dayObj.getDay() === 6) {
+      return;
+    }
     // Allow modal for national holidays too
     const leavesForDate = leaves.filter(l => l.date === date);
     setEditingLeave(null); // Always open in apply mode for date cell click
