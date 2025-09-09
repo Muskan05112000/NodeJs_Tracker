@@ -44,6 +44,31 @@ app.get('/api/holidays', async (req, res) => {
   res.json(holidays);
 });
 
+// Add new holiday
+app.post('/api/holidays', async (req, res) => {
+  try {
+    const { occasion, date, locations, national, country } = req.body;
+    if (!occasion || !date || !locations || locations.length === 0) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+    const holiday = new Holiday({ occasion, date, locations, national: !!national, country });
+    await holiday.save();
+    res.status(201).json(holiday);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete a holiday by ID
+app.delete('/api/holidays/:id', async (req, res) => {
+  try {
+    await Holiday.findByIdAndDelete(req.params.id);
+    res.status(204).end();
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // --- Leaves ---
 app.get('/api/leaves', async (req, res) => {
   const leaves = await Leave.find();

@@ -6,6 +6,7 @@ import ApplyLeave from "./components/ApplyLeave";
 import Users from "./components/Users";
 import Analysis from "./components/Analysis";
 import Dashboard from "./components/Dashboard";
+import HolidayUpdate from "./components/HolidayUpdate";
 import { AppProvider } from "./context/AppContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import Login from "./components/Login";
@@ -71,6 +72,7 @@ const AppRoutes = () => {
           <Route path="/" element={<ApplyLeave />} />
           <Route path="/users" element={<ProtectedRoute element={<Users />} allowedRoles={['Manager', 'Lead']} userRole={user.role} />} />
           <Route path="/analysis" element={<ProtectedRoute element={<Analysis />} allowedRoles={['Manager', 'Lead']} userRole={user.role} />} />
+          <Route path="/holiday-update" element={<HolidayUpdate />} />
         </Routes>
       </div>
     </>

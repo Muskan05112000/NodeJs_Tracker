@@ -199,6 +199,37 @@ const Sidebar = ({ userRole }) => {
           </ListItemButton>
         </NavLink>
       )}
+      {/* Only show Holiday Update for Lead role */}
+      {userRole === 'Lead' && (
+        <NavLink to="/holiday-update" style={({ isActive }) => ({ textDecoration: 'none', color: isActive ? '#1976d2' : '#fff' })}>
+          <ListItemButton
+            sx={{
+              borderRadius: 3,
+              mb: 1.5,
+              px: 2.5,
+              py: 1.5,
+              background: ({ isActive }) => isActive ? '#e3f2fd' : 'transparent',
+              color: ({ isActive }) => isActive ? '#1976d2' : '#fff',
+              fontWeight: 700,
+              fontSize: 18,
+              letterSpacing: 0.3,
+              transition: 'background 0.2s, color 0.2s',
+              '&:hover': {
+                background: '#e3f2fd',
+                color: '#1976d2',
+                boxShadow: 2,
+              }
+            }}
+          >
+            <ListItemIcon sx={{ color: 'inherit', minWidth: 36 }}><CalendarMonthIcon fontSize="medium" /></ListItemIcon>
+            {hovered && (
+              <ListItemText
+                primary={<span style={{ fontFamily: 'Inter, Segoe UI, Roboto, Arial, sans-serif', fontWeight: 700, fontSize: 18 }}>Holiday Update</span>}
+              />
+            )}
+          </ListItemButton>
+        </NavLink>
+      )}
     </List>
   </Box>
 );
