@@ -56,6 +56,20 @@ function AnalysisCharts({ month, year, type, onViewDetails }) {
     );
   }
   if (type === 'bar1') {
+    // Dynamically determine max Y value and generate ticks
+    const maxValue = Math.max(...monthlyCounts.map(m => m.Total));
+    // Round up to nearest 5 or 10 for a clean axis
+    const roundTo = maxValue > 20 ? 10 : 5;
+    const yMax = Math.ceil((maxValue + 1) / roundTo) * roundTo;
+    // Generate more ticks: every 2 if small, every 5/10 if large
+    let yTicks = [];
+    if (yMax <= 20) {
+      for (let i = 0; i <= yMax; i += 2) yTicks.push(i);
+      if (yTicks[yTicks.length - 1] !== yMax) yTicks.push(yMax);
+    } else {
+      for (let i = 0; i <= yMax; i += roundTo) yTicks.push(i);
+      if (yTicks[yTicks.length - 1] !== yMax) yTicks.push(yMax);
+    }
     // Custom Tooltip
     const CustomTooltip = ({ active, payload, label }) => {
       if (active && payload && payload.length) {
@@ -93,7 +107,16 @@ function AnalysisCharts({ month, year, type, onViewDetails }) {
         <ResponsiveContainer width="100%" height={420}>
           <BarChart data={monthlyCounts} barGap={2}>
             <XAxis dataKey="month" tick={{ fontWeight: 600, fontSize: 14, fontFamily: 'Inter, Roboto, Arial, sans-serif' }} axisLine={{ stroke: '#bbb' }} tickLine={false} />
-            <YAxis tick={{ fontWeight: 600, fontSize: 14, fontFamily: 'Inter, Roboto, Arial, sans-serif' }} axisLine={{ stroke: '#bbb' }} tickLine={false} domain={[0, 15]} ticks={[0, 5, 10, 15]} />
+            {/**
+  Dynamically calculate max Y value and ticks for better scaling and granularity
+*/}
+<YAxis
+  tick={{ fontWeight: 600, fontSize: 14, fontFamily: 'Inter, Roboto, Arial, sans-serif' }}
+  axisLine={{ stroke: '#bbb' }}
+  tickLine={false}
+  domain={[0, yMax]}
+  ticks={yTicks}
+/>
             <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(66,165,245,0.07)' }} />
             <Legend iconType="circle" wrapperStyle={{ fontWeight: 600, fontSize: 15, fontFamily: 'Inter, Roboto, Arial, sans-serif' }} />
             <Bar dataKey="Planned" fill="#66bb6a" radius={[8, 8, 0, 0]} isAnimationActive />
