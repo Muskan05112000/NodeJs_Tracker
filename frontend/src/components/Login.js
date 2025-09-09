@@ -1,16 +1,22 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 
+import { useNavigate } from 'react-router-dom';
+
 const Login = ({ loggedOut }) => {
   const { login, loading, error } = useAuth();
   const [associateId, setAssociateId] = useState('');
   const [password, setPassword] = useState('');
   const [success, setSuccess] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const ok = await login(associateId, password);
     setSuccess(ok);
+    if (ok) {
+      navigate('/');
+    }
   };
 
   return (

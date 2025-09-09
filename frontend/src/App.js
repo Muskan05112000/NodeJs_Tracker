@@ -73,6 +73,8 @@ const AppRoutes = () => {
           <Route path="/users" element={<ProtectedRoute element={<Users />} allowedRoles={['Manager', 'Lead']} userRole={user.role} />} />
           <Route path="/analysis" element={<ProtectedRoute element={<Analysis />} allowedRoles={['Manager', 'Lead']} userRole={user.role} />} />
           <Route path="/holiday-update" element={<HolidayUpdate />} />
+          {/* Redirect any unknown route to ApplyLeave */}
+          <Route path="*" element={<ApplyLeave />} />
         </Routes>
       </div>
     </>

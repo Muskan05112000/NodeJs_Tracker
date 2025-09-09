@@ -90,31 +90,17 @@ function AnalysisCharts({ month, year, type, onViewDetails }) {
         >
           Monthly Leave Counts ({year})
         </Typography>
-        {/* Calculate maxLeaveCount for YAxis scaling */}
-        {(() => {
-          const allCounts = monthlyCounts.flatMap(m => [m.Planned, m.Emergency, m.Sick]);
-          var maxLeaveCount = Math.max(1, ...allCounts);
-          return (
-            <ResponsiveContainer width="100%" height={420}>
-              <BarChart data={monthlyCounts} barGap={2}>
-                <XAxis dataKey="month" tick={{ fontWeight: 600, fontSize: 14, fontFamily: 'Inter, Roboto, Arial, sans-serif' }} axisLine={{ stroke: '#bbb' }} tickLine={false} />
-                <YAxis
-                  tick={{ fontWeight: 600, fontSize: 14, fontFamily: 'Inter, Roboto, Arial, sans-serif' }}
-                  domain={[0, Math.ceil(maxLeaveCount * 1.15)]}
-                  interval={0}
-                  allowDecimals={false}
-                  ticks={Array.from({length: 10}, (_, i) => i * Math.ceil((maxLeaveCount + 1) / 9))}
-                  nice={true}
-                />
-                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(66,165,245,0.07)' }} />
-                <Legend iconType="circle" wrapperStyle={{ fontWeight: 600, fontSize: 15, fontFamily: 'Inter, Roboto, Arial, sans-serif' }} />
-                <Bar dataKey="Planned" fill="#66bb6a" radius={[8, 8, 0, 0]} isAnimationActive />
-                <Bar dataKey="Emergency" fill="#ef5350" radius={[8, 8, 0, 0]} isAnimationActive />
-                <Bar dataKey="Sick" fill="#fff176" radius={[8, 8, 0, 0]} isAnimationActive />
-              </BarChart>
-            </ResponsiveContainer>
-          );
-        })()}
+        <ResponsiveContainer width="100%" height={420}>
+          <BarChart data={monthlyCounts} barGap={2}>
+            <XAxis dataKey="month" tick={{ fontWeight: 600, fontSize: 14, fontFamily: 'Inter, Roboto, Arial, sans-serif' }} axisLine={{ stroke: '#bbb' }} tickLine={false} />
+            <YAxis tick={{ fontWeight: 600, fontSize: 14, fontFamily: 'Inter, Roboto, Arial, sans-serif' }} axisLine={{ stroke: '#bbb' }} tickLine={false} domain={[0, 15]} ticks={[0, 5, 10, 15]} />
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(66,165,245,0.07)' }} />
+            <Legend iconType="circle" wrapperStyle={{ fontWeight: 600, fontSize: 15, fontFamily: 'Inter, Roboto, Arial, sans-serif' }} />
+            <Bar dataKey="Planned" fill="#66bb6a" radius={[8, 8, 0, 0]} isAnimationActive />
+            <Bar dataKey="Emergency" fill="#ef5350" radius={[8, 8, 0, 0]} isAnimationActive />
+            <Bar dataKey="Sick" fill="#fff176" radius={[8, 8, 0, 0]} isAnimationActive />
+          </BarChart>
+        </ResponsiveContainer>
       </Paper>
     );
   }
