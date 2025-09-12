@@ -12,6 +12,7 @@ const leaveTypes = [
 ];
 
 function LeaveModal({ open, onClose, selectedDates, editingLeave, onSubmit, onRevoke, onEdit, leavesForDate = [] }) {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { employees, deleteLeave } = useContext(AppContext);
   const { user } = useAuth();
   // Find the logged-in employee by associateId
@@ -258,12 +259,7 @@ function LeaveModal({ open, onClose, selectedDates, editingLeave, onSubmit, onRe
               onClick={async () => {
                 if (employee && type && selectedLeaveId !== "none") {
                   if (user && user.role === 'Lead') {
-                    // Directly delete the leave for Lead
-                    const leaveToDelete = leavesForDate.find(l => l._id === selectedLeaveId);
-                    if (leaveToDelete && window.confirm('Are you sure you want to permanently delete this leave?')) {
-                      await deleteLeave(leaveToDelete._id);
-                      onClose();
-                    }
+                    setDeleteDialogOpen(true);
                   } else if (onRevoke) {
                     await onRevoke({ employee, type });
                     onClose();
@@ -345,6 +341,25 @@ function LeaveModal({ open, onClose, selectedDates, editingLeave, onSubmit, onRe
         Cancel
       </Button>
     </DialogActions>
+    <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+      <DialogTitle sx={{ fontWeight: 900, color: '#d32f2f', fontSize: 22 }}>Permanently Delete Leave?</DialogTitle>
+      <DialogContent>
+        <Box sx={{ fontSize: 17, fontWeight: 600, color: '#333', mb: 2 }}>
+          Are you sure you want to <span style={{ color: '#d32f2f', fontWeight: 900 }}>permanently delete</span> this leave? This action cannot be undone.
+        </Box>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setDeleteDialogOpen(false)} color="secondary" variant="outlined" sx={{ fontWeight: 800, px: 3, borderRadius: 8 }}>Cancel</Button>
+        <Button onClick={async () => {
+          const leaveToDelete = leavesForDate.find(l => l._id === selectedLeaveId);
+          if (leaveToDelete) {
+            await deleteLeave(leaveToDelete._id);
+            setDeleteDialogOpen(false);
+            onClose();
+          }
+        }} color="error" variant="contained" sx={{ fontWeight: 900, px: 3, borderRadius: 8 }}>Delete</Button>
+      </DialogActions>
+    </Dialog>
   </Dialog>
   );
 }
