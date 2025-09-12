@@ -79,7 +79,8 @@ const HolidayUpdate = () => {
   const handleSubmit = async () => {
     // Add new holiday to backend and context
     if (!date || !occasion || cities.length === 0) {
-      alert("Please fill all fields and select at least one city.");
+      setAlertMsg("Please fill all fields and select at least one city.");
+      setAlertOpen(true);
       return;
     }
     const newHoliday = {
@@ -106,7 +107,8 @@ const HolidayUpdate = () => {
       setOccasion("");
       setIsNational(false);
     } catch (err) {
-      alert("Failed to add holiday: " + err.message);
+      setAlertMsg("Failed to add holiday: " + err.message);
+      setAlertOpen(true);
     }
   };
 
@@ -363,7 +365,8 @@ const HolidayUpdate = () => {
                   setIsNational(false);
                   setSelectedHoliday(null);
                 } catch (err) {
-                  alert('Failed to revoke holiday: ' + err.message);
+                  setAlertMsg('Failed to revoke holiday: ' + err.message);
+                  setAlertOpen(true);
                 }
               }}
               variant="contained"

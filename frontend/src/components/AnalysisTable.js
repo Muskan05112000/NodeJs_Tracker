@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Dialog, DialogTitle, DialogContent, DialogActions, Box, Typography, Select, MenuItem } from "@mui/material";
 
 function AnalysisTable() {
-  const { employees, leaves } = useContext(AppContext);
+  const { employees, leaves, activeLeaves } = useContext(AppContext);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedEmployee, setSelectedEmployee] = useState('All');
@@ -18,7 +18,7 @@ function AnalysisTable() {
   ];
 
   // Get all leaves in the selected range
-  const filteredLeaves = leaves.filter(l => {
+  const filteredLeaves = activeLeaves.filter(l => {
     const dateObj = new Date(l.date);
     const yearMatch = dateObj.getFullYear() === selectedYear;
     const monthMatch = dateObj.getMonth() >= startMonth && dateObj.getMonth() <= endMonth;
@@ -324,7 +324,7 @@ function AnalysisTable() {
         <Box sx={{ mb: 2, background: 'rgba(124,77,255,0.04)', borderRadius: 3, p: 2, boxShadow: '0 2px 10px 0 #b388ff11' }}>
           {(() => {
             // Find all leave dates for this user in the selected range
-            const userLeaves = leaves.filter(l => {
+            const userLeaves = activeLeaves.filter(l => {
               if (l.employee !== selectedUser.name) return false;
               const dateObj = new Date(l.date);
               const yearMatch = dateObj.getFullYear() === selectedYear;
@@ -336,7 +336,8 @@ function AnalysisTable() {
             const leaveTypeMap = {
               Planned: { color: '#66bb6a', label: '🟩 Planned Leave', dates: [] },
               Emergency: { color: '#ef5350', label: '🟥 Emergency Leave', dates: [] },
-              Sick: { color: '#fff176', label: '🟨 Sick Leave', dates: [] }
+              Sick: { color: '#fff176', label: '🟨 Sick Leave', dates: [] },
+              HalfDay: { color: '#8bc34a', label: '🟩 Half Day Leave', dates: [] }
             };
             userLeaves.forEach(l => {
               if (leaveTypeMap[l.type]) leaveTypeMap[l.type].dates.push(l.date);

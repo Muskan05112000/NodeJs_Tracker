@@ -4,15 +4,15 @@ import { Box, Typography, Button, Grid, Paper } from "@mui/material";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, LineChart, Line, Legend } from "recharts";
 import { format, parseISO } from "date-fns";
 
-const COLORS = ["#66bb6a", "#ef5350", "#fff176"];
-const LEAVE_TYPES = ["Planned", "Emergency", "Sick"];
+const COLORS = ["#66bb6a", "#ef5350", "#fff176", "#8bc34a"];
+const LEAVE_TYPES = ["Planned", "Emergency", "Sick", "HalfDay"];
 
 function AnalysisCharts({ month, year, type, onViewDetails }) {
-  const { leaves } = useContext(AppContext);
+  const { activeLeaves } = useContext(AppContext);
 
   // Donut chart data for selected month
   const monthStr = `${year}-${String(month+1).padStart(2, '0')}`;
-  const monthLeaves = leaves.filter(l => l.date.startsWith(monthStr));
+  const monthLeaves = activeLeaves.filter(l => l.date.startsWith(monthStr));
   const donutData = LEAVE_TYPES.map(type => ({
     name: type,
     value: monthLeaves.filter(l => l.type === type).length
@@ -24,18 +24,19 @@ function AnalysisCharts({ month, year, type, onViewDetails }) {
     const mStr = `${year}-${String(m+1).padStart(2, '0')}`;
     return {
       month: format(new Date(year, m), "MMM"),
-      Planned: leaves.filter(l => l.date.startsWith(mStr) && l.type === "Planned").length,
-      Emergency: leaves.filter(l => l.date.startsWith(mStr) && l.type === "Emergency").length,
-      Sick: leaves.filter(l => l.date.startsWith(mStr) && l.type === "Sick").length,
-      Total: leaves.filter(l => l.date.startsWith(mStr)).length
+      Planned: activeLeaves.filter(l => l.date.startsWith(mStr) && l.type === "Planned").length,
+      Emergency: activeLeaves.filter(l => l.date.startsWith(mStr) && l.type === "Emergency").length,
+      Sick: activeLeaves.filter(l => l.date.startsWith(mStr) && l.type === "Sick").length,
+      HalfDay: activeLeaves.filter(l => l.date.startsWith(mStr) && l.type === "HalfDay").length,
+      Total: activeLeaves.filter(l => l.date.startsWith(mStr)).length
     };
   });
 
   // Yearly totals (bar chart)
-  const years = Array.from(new Set(leaves.map(l => l.date.slice(0,4))));
+  const years = Array.from(new Set(activeLeaves.map(l => l.date.slice(0,4))));
   const yearlyCounts = years.map(y => ({
     year: y,
-    Total: leaves.filter(l => l.date.startsWith(y)).length
+    Total: activeLeaves.filter(l => l.date.startsWith(y)).length
   }));
 
   if (type === 'donut') {
@@ -122,6 +123,7 @@ function AnalysisCharts({ month, year, type, onViewDetails }) {
             <Bar dataKey="Planned" fill="#66bb6a" radius={[8, 8, 0, 0]} isAnimationActive />
             <Bar dataKey="Emergency" fill="#ef5350" radius={[8, 8, 0, 0]} isAnimationActive />
             <Bar dataKey="Sick" fill="#fff176" radius={[8, 8, 0, 0]} isAnimationActive />
+            <Bar dataKey="HalfDay" fill="#8bc34a" radius={[8, 8, 0, 0]} isAnimationActive />
           </BarChart>
         </ResponsiveContainer>
       </Paper>

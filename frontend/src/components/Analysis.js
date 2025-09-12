@@ -15,7 +15,7 @@ const Analysis = () => {
   const [selectedWeek, setSelectedWeek] = useState(1);
   const [excelModalOpen, setExcelModalOpen] = useState(false);
   const [excelSuccess, setExcelSuccess] = useState(false);
-  const { employees = [], leaves = [] } = useContext(AppContext);
+  const { employees = [], activeLeaves = [] } = useContext(AppContext);
   const [month, setMonth] = useState(new Date().getMonth());
   const [year, setYear] = useState(new Date().getFullYear());
   const [sendMailOpen, setSendMailOpen] = useState(false);
@@ -57,7 +57,7 @@ const Analysis = () => {
       appPassword: mailAppPassword,
       subject: 'Leave update for this week',
       employees,
-      leaves,
+      activeLeaves,
       weekStart: weekStart.toISOString()
     };
     console.log('Send Mail Payload:', payload);
@@ -103,7 +103,7 @@ const Analysis = () => {
     }
     const payload = {
       employees,
-      leaves,
+      activeLeaves,
       weekStart: weekStart.toISOString(),
       weekDays: weekDays.map(d => d.toISOString())
     };
@@ -113,7 +113,8 @@ const Analysis = () => {
       body: JSON.stringify(payload)
     });
     if (!response.ok) {
-      alert('Failed to generate Excel file.');
+      setAlertMsg('Failed to generate Excel file.');
+      setAlertOpen(true);
       return;
     }
     const blob = await response.blob();
@@ -354,7 +355,7 @@ const Analysis = () => {
                     body: JSON.stringify({
                       phone,
                       employees,
-                      leaves,
+                      activeLeaves,
                       weekStart: weekStart.toISOString()
                     })
                   })

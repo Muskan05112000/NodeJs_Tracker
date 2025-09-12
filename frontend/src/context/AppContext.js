@@ -63,6 +63,11 @@ export const AppProvider = ({ children }) => {
   };
 
   // --- Leaves CRUD ---
+  const fetchLeaves = async () => {
+    const res = await fetch(`${API_BASE}/leaves`);
+    if (res.ok) setLeaves(await res.json());
+  };
+
   const addLeave = async (leave) => {
     const res = await fetch(`${API_BASE}/leaves`, {
       method: "POST",
@@ -70,8 +75,7 @@ export const AppProvider = ({ children }) => {
       body: JSON.stringify(leave)
     });
     if (res.ok) {
-      const newLeave = await res.json();
-      setLeaves((prev) => [...prev, newLeave]);
+      await fetchLeaves();
     }
   };
 
@@ -82,16 +86,18 @@ export const AppProvider = ({ children }) => {
       body: JSON.stringify(updated)
     });
     if (res.ok) {
-      const updatedLeave = await res.json();
-      setLeaves((prev) => prev.map(l => l._id === id ? updatedLeave : l));
+      await fetchLeaves();
     }
   };
 
-  const revokeLeave = async (id) => {
-    const res = await fetch(`${API_BASE}/leaves/${id}`, {
-      method: "DELETE" });
-    if (res.ok || res.status === 204) {
-      setLeaves((prev) => prev.filter(l => l._id !== id));
+  const revokeLeave = async (id, revocationReason = "", revokedBy = "") => {
+    const res = await fetch(`${API_BASE}/leaves/${id}/revoke`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ revocationReason, revokedBy }),
+    });
+    if (res.ok) {
+      await fetchLeaves();
     }
   };
 
@@ -102,7 +108,8 @@ export const AppProvider = ({ children }) => {
       employees, setEmployees, addEmployee, editEmployee, deleteEmployee,
       leaves, setLeaves, addLeave, editLeave, revokeLeave,
       holidays, setHolidays,
-      loading
+      loading,
+      activeLeaves: leaves.filter(l => l.status !== "Revoked")
     }}>
       {children}
     </AppContext.Provider>

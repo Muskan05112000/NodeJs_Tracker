@@ -117,7 +117,11 @@ const Holiday = mongoose.model('Holiday', holidaySchema);
 const leaveSchema = new mongoose.Schema({
   date: String, // ISO format
   employee: String, // employee name
-  type: { type: String, enum: ['Planned', 'Emergency', 'Sick'] },
+  type: { type: String, enum: ['Planned', 'Emergency', 'Sick', 'HalfDay'] },
+  status: { type: String, enum: ['Active', 'Revoked'], default: 'Active' },
+  revokedAt: Date,
+  revokedBy: String,
+  revocationReason: String
 });
 const Leave = mongoose.model('Leave', leaveSchema);
 
@@ -308,9 +312,26 @@ app.put('/api/leaves/:id', async (req, res) => {
   }
 });
 
-app.delete('/api/leaves/:id', async (req, res) => {
-  await Leave.findByIdAndDelete(req.params.id);
-  res.status(204).end();
+// Revoke leave (soft delete)
+app.put('/api/leaves/:id/revoke', async (req, res) => {
+  try {
+    const leave = await Leave.findById(req.params.id);
+    if (!leave) return res.status(404).json({ error: 'Leave not found' });
+    // Prevent revocation if leave date is in the past
+    const today = new Date();
+    const leaveDate = new Date(leave.date);
+    if (leaveDate < today.setHours(0,0,0,0)) {
+      return res.status(400).json({ error: 'Cannot revoke a leave that is in the past.' });
+    }
+    leave.status = 'Revoked';
+    leave.revokedAt = new Date();
+    leave.revokedBy = req.body.revokedBy || 'self';
+    leave.revocationReason = req.body.revocationReason || '';
+    await leave.save();
+    res.json({ success: true, leave });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
 });
 
 const port = process.env.PORT || 4000;

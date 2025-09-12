@@ -4,13 +4,13 @@ import { Typography } from "@mui/material";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { format } from "date-fns";
 
-const COLORS = ["#66bb6a", "#ef5350", "#fff176"];
-const LEAVE_TYPES = ["Planned", "Emergency", "Sick"];
+const COLORS = ["#66bb6a", "#ef5350", "#fff176", "#8bc34a"];
+const LEAVE_TYPES = ["Planned", "Emergency", "Sick", "HalfDay"];
 
 export default function DonutChartOnly({ month, year }) {
-  const { leaves } = useContext(AppContext);
+  const { activeLeaves } = useContext(AppContext);
   const monthStr = `${year}-${String(month+1).padStart(2, '0')}`;
-  const monthLeaves = leaves.filter(l => l.date.startsWith(monthStr));
+  const monthLeaves = activeLeaves.filter(l => l.date.startsWith(monthStr));
   const donutData = LEAVE_TYPES.map(type => ({
     name: type,
     value: monthLeaves.filter(l => l.type === type).length
@@ -106,6 +106,11 @@ export default function DonutChartOnly({ month, year }) {
           label: 'Sick Leaves',
           value: donutData[2].value,
           bg: 'rgba(255,241,118,0.20)'
+        }, {
+          color: '#8bc34a',
+          label: 'Half Day Leaves',
+          value: donutData[3].value,
+          bg: 'rgba(139,195,74,0.15)'
         }].map((item, idx) => (
           <div
             key={item.label}

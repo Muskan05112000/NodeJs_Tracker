@@ -203,12 +203,16 @@ function Calendar({
                   marginTop: 5,
                   marginBottom: 2,
                   background:
-                    leave.type === 'Planned'
-                      ? 'linear-gradient(90deg, #43e97b 0%, #38f9d7 100%)'
-                      : leave.type === 'Emergency'
-                      ? 'linear-gradient(90deg, #ff5858 0%, #f09819 100%)'
-                      : 'linear-gradient(90deg, #f7971e 0%, #ffd200 100%)',
-                  color: leave.type === 'Emergency' ? '#fff' : '#222',
+        leave.status === 'Revoked'
+          ? 'linear-gradient(90deg, #e0e0e0 0%, #bdbdbd 100%)'
+          : leave.type === 'HalfDay'
+          ? '#bfcf87'
+          : leave.type === 'Planned'
+          ? 'linear-gradient(90deg, #43e97b 0%, #38f9d7 100%)'
+          : leave.type === 'Emergency'
+          ? 'linear-gradient(90deg, #ff5858 0%, #f09819 100%)'
+          : 'linear-gradient(90deg, #f7971e 0%, #ffd200 100%)',
+                  color: leave.status === 'Revoked' ? '#888' : leave.type === 'Emergency' ? '#fff' : '#222',
                   borderRadius: 16,
                   padding: '3px 12px',
                   fontSize: 13,
@@ -218,11 +222,15 @@ function Calendar({
                   boxSizing: 'border-box',
                   wordBreak: 'break-word',
                   whiteSpace: 'normal',
-                  cursor: 'pointer',
+                  cursor: leave.status === 'Revoked' ? 'not-allowed' : 'pointer',
                   boxShadow: '0 2px 10px 0 rgba(60,60,60,0.10)',
                   letterSpacing: 0.2,
                   transition: 'box-shadow 0.18s, transform 0.18s',
+                  opacity: leave.status === 'Revoked' ? 0.6 : 1,
+                  textDecoration: leave.status === 'Revoked' ? 'line-through' : 'none',
+                  position: 'relative',
                 }}
+                title={leave.status === 'Revoked' ? `Revoked by: ${leave.revokedBy || 'N/A'}\nRevoked at: ${leave.revokedAt ? new Date(leave.revokedAt).toLocaleString() : 'N/A'}\nReason: ${leave.revocationReason || 'N/A'}` : ''}
                 onMouseEnter={e => {
                   e.currentTarget.style.boxShadow = '0 4px 16px 2px rgba(124,77,255,0.13)';
                   e.currentTarget.style.transform = 'scale(1.06)';
@@ -232,14 +240,30 @@ function Calendar({
                   e.currentTarget.style.transform = 'scale(1)';
                 }}
                 onClick={e => {
+                  if (leave.status === 'Revoked') return;
                   e.stopPropagation();
                   if (typeof onLeaveClick === 'function') {
                     onLeaveClick(cell.key, leave);
                   }
                 }}
               >
-                <span style={{fontWeight:800, fontSize:13}}>{leave.employee}</span>
-                <span style={{fontWeight:500, fontSize:12, opacity:0.85}}> ({leave.type})</span>
+                {leave.employee} - {leave.type}
+                {leave.status === 'Revoked' && (
+                  <span style={{
+                    background: '#d32f2f',
+                    color: '#fff',
+                    borderRadius: 8,
+                    fontSize: 10,
+                    fontWeight: 900,
+                    marginLeft: 8,
+                    padding: '2px 7px',
+                    letterSpacing: 0.7,
+                    verticalAlign: 'middle',
+                    display: 'inline-block',
+                  }}>
+                    Revoked
+                  </span>
+                )}
               </span>
             ))}
           </div>
