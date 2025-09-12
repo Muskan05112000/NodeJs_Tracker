@@ -12,7 +12,7 @@ const leaveTypes = [
 ];
 
 function LeaveModal({ open, onClose, selectedDates, editingLeave, onSubmit, onRevoke, onEdit, leavesForDate = [] }) {
-  const { employees } = useContext(AppContext);
+  const { employees, deleteLeave } = useContext(AppContext);
   const { user } = useAuth();
   // Find the logged-in employee by associateId
   const loggedInEmployee = employees.find(emp => String(emp.associateId) === String(user?.associateId));
@@ -256,9 +256,18 @@ function LeaveModal({ open, onClose, selectedDates, editingLeave, onSubmit, onRe
             </Button>
             <Button
               onClick={async () => {
-                if (onRevoke && employee && type && selectedLeaveId !== "none") {
-                  await onRevoke({ employee, type });
-                  onClose();
+                if (employee && type && selectedLeaveId !== "none") {
+                  if (user && user.role === 'Lead') {
+                    // Directly delete the leave for Lead
+                    const leaveToDelete = leavesForDate.find(l => l._id === selectedLeaveId);
+                    if (leaveToDelete && window.confirm('Are you sure you want to permanently delete this leave?')) {
+                      await deleteLeave(leaveToDelete._id);
+                      onClose();
+                    }
+                  } else if (onRevoke) {
+                    await onRevoke({ employee, type });
+                    onClose();
+                  }
                 }
               }}
               variant="contained"
@@ -270,6 +279,8 @@ function LeaveModal({ open, onClose, selectedDates, editingLeave, onSubmit, onRe
                 (() => {
                   const leave = leavesForDate.find(l => l._id === selectedLeaveId);
                   if (!leave) return true;
+                  // Allow Lead to revoke any leave, even past dates
+                  if (user && user.role === 'Lead') return false;
                   const leaveDate = new Date(leave.date);
                   const today = new Date();
                   today.setHours(0, 0, 0, 0);

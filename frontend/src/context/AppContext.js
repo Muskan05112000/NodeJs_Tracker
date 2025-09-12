@@ -63,6 +63,10 @@ export const AppProvider = ({ children }) => {
   };
 
   // --- Leaves CRUD ---
+  const deleteLeave = async (id) => {
+    const res = await fetch(`${API_BASE}/leaves/${id}`, { method: 'DELETE' });
+    if (res.ok) await fetchLeaves();
+  };
   const fetchLeaves = async () => {
     const res = await fetch(`${API_BASE}/leaves`);
     if (res.ok) setLeaves(await res.json());
@@ -106,7 +110,7 @@ export const AppProvider = ({ children }) => {
   return (
     <AppContext.Provider value={{
       employees, setEmployees, addEmployee, editEmployee, deleteEmployee,
-      leaves, setLeaves, addLeave, editLeave, revokeLeave,
+      leaves, setLeaves, addLeave, editLeave, revokeLeave, deleteLeave,
       holidays, setHolidays,
       loading,
       activeLeaves: leaves.filter(l => l.status !== "Revoked")

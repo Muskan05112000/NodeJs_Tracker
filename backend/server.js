@@ -313,6 +313,16 @@ app.put('/api/leaves/:id', async (req, res) => {
 });
 
 // Revoke leave (soft delete)
+app.delete('/api/leaves/:id', async (req, res) => {
+  try {
+    const deleted = await Leave.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ error: 'Leave not found' });
+    res.status(204).end();
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 app.put('/api/leaves/:id/revoke', async (req, res) => {
   try {
     const leave = await Leave.findById(req.params.id);
