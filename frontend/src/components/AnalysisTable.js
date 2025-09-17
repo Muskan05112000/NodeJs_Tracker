@@ -95,7 +95,7 @@ function AnalysisTable() {
               transition: 'box-shadow 0.18s, border-color 0.18s',
             }}
           >
-            {Array.from({length: 5}, (_,i) => new Date().getFullYear() - i).map(y => (
+            {Array.from({length: 7}, (_,i) => new Date().getFullYear() - i).map(y => (
               <MenuItem key={y} value={y} sx={{ fontWeight: 700, fontSize: 16 }}>{y}</MenuItem>
             ))}
           </Select>
