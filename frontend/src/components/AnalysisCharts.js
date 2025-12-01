@@ -11,7 +11,7 @@ function AnalysisCharts({ month, year, type, onViewDetails }) {
   const { activeLeaves } = useContext(AppContext);
 
   // Donut chart data for selected month
-  const monthStr = `${year}-${String(month+1).padStart(2, '0')}`;
+  const monthStr = `${year}-${String(month + 1).padStart(2, '0')}`;
   const monthLeaves = activeLeaves.filter(l => l.date.startsWith(monthStr));
   const donutData = LEAVE_TYPES.map(type => ({
     name: type,
@@ -21,7 +21,7 @@ function AnalysisCharts({ month, year, type, onViewDetails }) {
   // Monthly leave counts (bar/line chart)
   const months = Array.from({ length: 12 }, (_, i) => i);
   const monthlyCounts = months.map(m => {
-    const mStr = `${year}-${String(m+1).padStart(2, '0')}`;
+    const mStr = `${year}-${String(m + 1).padStart(2, '0')}`;
     return {
       month: format(new Date(year, m), "MMM"),
       Planned: activeLeaves.filter(l => l.date.startsWith(mStr) && l.type === "Planned").length,
@@ -33,26 +33,48 @@ function AnalysisCharts({ month, year, type, onViewDetails }) {
   });
 
   // Yearly totals (bar chart)
-  const years = Array.from(new Set(activeLeaves.map(l => l.date.slice(0,4))));
+  const years = Array.from(new Set(activeLeaves.map(l => l.date.slice(0, 4))));
   const yearlyCounts = years.map(y => ({
     year: y,
     Total: activeLeaves.filter(l => l.date.startsWith(y)).length
   }));
 
+  // Empty State Component
+  const EmptyState = () => (
+    <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100%" minHeight={200} opacity={0.6}>
+      <Typography variant="h6" fontWeight={700} color="textSecondary">No Data Available</Typography>
+      <Typography variant="body2" color="textSecondary">There are no leave records for this period.</Typography>
+    </Box>
+  );
+
+  // Glassmorphism Tooltip Style
+  const tooltipStyle = {
+    padding: '12px',
+    boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.15)',
+    borderRadius: '12px',
+    background: 'rgba(255, 255, 255, 0.85)',
+    backdropFilter: 'blur(8px)',
+    border: '1px solid rgba(255, 255, 255, 0.18)'
+  };
+
   if (type === 'donut') {
     return (
-      <Paper sx={{ p: 2 }}>
+      <Paper sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
         <Typography variant="subtitle1">Leaves Breakdown ({format(new Date(year, month), "MMMM yyyy")})</Typography>
-        <ResponsiveContainer width="100%" height={250}>
-          <PieChart>
-            <Pie data={donutData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={90} label>
-              {donutData.map((entry, idx) => (
-                <Cell key={`cell-${idx}`} fill={COLORS[idx]} />
-              ))}
-            </Pie>
-            <Tooltip />
-          </PieChart>
-        </ResponsiveContainer>
+        <Box flexGrow={1} minHeight={250}>
+          {donutData.every(d => d.value === 0) ? <EmptyState /> : (
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={donutData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={90} label>
+                  {donutData.map((entry, idx) => (
+                    <Cell key={`cell-${idx}`} fill={COLORS[idx]} />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={tooltipStyle} itemStyle={{ fontWeight: 600 }} />
+              </PieChart>
+            </ResponsiveContainer>
+          )}
+        </Box>
       </Paper>
     );
   }
@@ -75,10 +97,10 @@ function AnalysisCharts({ month, year, type, onViewDetails }) {
     const CustomTooltip = ({ active, payload, label }) => {
       if (active && payload && payload.length) {
         return (
-          <Paper sx={{ p: 1.5, boxShadow: 3, borderRadius: 2, background: '#fff' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{label}</Typography>
+          <Paper sx={tooltipStyle}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>{label}</Typography>
             {payload.map((entry, idx) => (
-              <div key={entry.name} style={{ color: entry.fill, fontWeight: 600, fontSize: 15, margin: '2px 0' }}>
+              <div key={entry.name} style={{ color: entry.fill, fontWeight: 600, fontSize: 14, margin: '2px 0' }}>
                 ● {entry.name}: <span style={{ fontWeight: 800 }}>{entry.value}</span>
               </div>
             ))}
@@ -111,13 +133,13 @@ function AnalysisCharts({ month, year, type, onViewDetails }) {
             {/**
   Dynamically calculate max Y value and ticks for better scaling and granularity
 */}
-<YAxis
-  tick={{ fontWeight: 600, fontSize: 14, fontFamily: 'Inter, Roboto, Arial, sans-serif' }}
-  axisLine={{ stroke: '#bbb' }}
-  tickLine={false}
-  domain={[0, yMax]}
-  ticks={yTicks}
-/>
+            <YAxis
+              tick={{ fontWeight: 600, fontSize: 14, fontFamily: 'Inter, Roboto, Arial, sans-serif' }}
+              axisLine={{ stroke: '#bbb' }}
+              tickLine={false}
+              domain={[0, yMax]}
+              ticks={yTicks}
+            />
             <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(66,165,245,0.07)' }} />
             <Legend iconType="circle" wrapperStyle={{ fontWeight: 600, fontSize: 15, fontFamily: 'Inter, Roboto, Arial, sans-serif' }} />
             <Bar dataKey="Planned" fill="#66bb6a" radius={[8, 8, 0, 0]} isAnimationActive />
@@ -134,10 +156,10 @@ function AnalysisCharts({ month, year, type, onViewDetails }) {
     const CustomTooltipYear = ({ active, payload, label }) => {
       if (active && payload && payload.length) {
         return (
-          <Paper sx={{ p: 1.5, boxShadow: 3, borderRadius: 2, background: '#fff' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{label}</Typography>
+          <Paper sx={tooltipStyle}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>{label}</Typography>
             {payload.map((entry, idx) => (
-              <div key={entry.name} style={{ color: '#42a5f5', fontWeight: 600, fontSize: 15, margin: '2px 0' }}>
+              <div key={entry.name} style={{ color: '#7c4dff', fontWeight: 600, fontSize: 14, margin: '2px 0' }}>
                 ● Total: <span style={{ fontWeight: 800 }}>{entry.value}</span>
               </div>
             ))}

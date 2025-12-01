@@ -4,7 +4,7 @@ console.log('PORT env:', process.env.PORT);
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const path= require('path');
+const path = require('path');
 
 const app = express(); // <-- Initialize app before use
 
@@ -99,9 +99,9 @@ mongoose.connect(MONGO_URI, {
 
 // --- Schemas ---
 //const employeeSchema = new mongoose.Schema({
-  //name: { type: String, required: true },
-  //location: String,
-  //team: String
+//name: { type: String, required: true },
+//location: String,
+//team: String
 //});
 //const Employee = mongoose.model('Employee', employeeSchema);
 const Employee = require('./models/Employee');
@@ -170,7 +170,6 @@ app.post('/api/employees', async (req, res) => {
 
 // --- Send Leave Email ---
 const { format, addDays, isSameDay } = require('date-fns');
-// const { sendWeeklyLeaveSMS } = require('./sendSms'); // WhatsApp/SMS integration disabled
 const { generateLeaveTrackerExcel } = require('./generateExcel');
 
 app.post('/api/download-leave-excel', async (req, res) => {
@@ -186,7 +185,7 @@ app.post('/api/download-leave-excel', async (req, res) => {
         res.status(500).json({ error: 'Failed to download file' });
       } else {
         // Optionally delete file after sending
-        setTimeout(() => { try { require('fs').unlinkSync(filePath); } catch(e){} }, 2000);
+        setTimeout(() => { try { require('fs').unlinkSync(filePath); } catch (e) { } }, 2000);
       }
     });
   } catch (err) {
@@ -194,18 +193,7 @@ app.post('/api/download-leave-excel', async (req, res) => {
   }
 });
 
-// app.post('/api/send-leave-sms', async (req, res) => {
-//   const { phone, employees, leaves, weekStart } = req.body;
-//   if (!phone || !employees || !leaves || !weekStart) {
-//     return res.status(400).json({ error: 'Missing phone, employees, leaves, or weekStart' });
-//   }
-//   try {
-//     await sendWeeklyLeaveSMS({ phone, employees, leaves, weekStart });
-//     res.json({ success: true });
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// });
+
 
 app.post('/api/send-leave-email', async (req, res) => {
   console.log('Received send-leave-email body:', req.body);
@@ -330,7 +318,7 @@ app.put('/api/leaves/:id/revoke', async (req, res) => {
     // Prevent revocation if leave date is in the past
     const today = new Date();
     const leaveDate = new Date(leave.date);
-    if (leaveDate < today.setHours(0,0,0,0)) {
+    if (leaveDate < today.setHours(0, 0, 0, 0)) {
       return res.status(400).json({ error: 'Cannot revoke a leave that is in the past.' });
     }
     leave.status = 'Revoked';

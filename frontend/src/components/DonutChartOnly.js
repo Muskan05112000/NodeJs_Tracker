@@ -7,10 +7,13 @@ import { format } from "date-fns";
 const COLORS = ["#66bb6a", "#ef5350", "#fff176", "#8bc34a"];
 const LEAVE_TYPES = ["Planned", "Emergency", "Sick", "HalfDay"];
 
-export default function DonutChartOnly({ month, year }) {
+export default function DonutChartOnly({ startMonth, endMonth, year }) {
   const { activeLeaves } = useContext(AppContext);
-  const monthStr = `${year}-${String(month+1).padStart(2, '0')}`;
-  const monthLeaves = activeLeaves.filter(l => l.date.startsWith(monthStr));
+  // Filter leaves for the selected year and month range
+  const monthLeaves = activeLeaves.filter(l => {
+    const d = new Date(l.date);
+    return d.getFullYear() === year && d.getMonth() >= startMonth && d.getMonth() <= endMonth;
+  });
   const donutData = LEAVE_TYPES.map(type => ({
     name: type,
     value: monthLeaves.filter(l => l.type === type).length
@@ -32,7 +35,7 @@ export default function DonutChartOnly({ month, year }) {
           mb: 2
         }}
       >
-        Total Leaves - {format(new Date(year, month), "MMMM")}
+        Total Leaves - {startMonth === endMonth ? format(new Date(year, startMonth), "MMMM") : `${format(new Date(year, startMonth), "MMM")} - ${format(new Date(year, endMonth), "MMM")}`}
       </Typography>
       <ResponsiveContainer width="100%" height={420}>
         <PieChart>

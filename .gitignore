@@ -13,3 +13,8 @@ Thumbs.db
 # Misc
 .idea/
 .vscode/
+# WhatsApp Web session files
+.wwebjs_auth/
+.wwebjs_cache/
+DevToolsActivePort
+

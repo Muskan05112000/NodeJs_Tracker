@@ -3,7 +3,7 @@
 import React, { useContext, useState } from "react";
 import { AppContext } from "../context/AppContext";
 import UserModal from "./UserModal";
-import { Box, Button, Table, TableContainer, TableHead, TableRow, TableCell, TableBody, Paper, CircularProgress, Dialog, DialogTitle, DialogActions, Snackbar, Alert } from "@mui/material";
+import { Box, Button, Table, TableContainer, TableHead, TableRow, TableCell, TableBody, Paper, CircularProgress, Dialog, DialogTitle, DialogActions, Snackbar, Alert, Typography } from "@mui/material";
 
 const Users = () => {
   const { employees, addEmployee, editEmployee, deleteEmployee, loading } = useContext(AppContext);
@@ -61,203 +61,124 @@ const Users = () => {
   if (loading) return <Box ml={30} mt={10}><CircularProgress /></Box>;
 
   return (
-    <div style={{ marginLeft: 240, padding: 32, fontFamily: 'Inter, Segoe UI, Roboto, Arial, sans-serif', background: 'var(--primary-gradient)', minHeight: '100vh' }}>
-      <h2 style={{
-        margin: '40px auto 24px auto',
-        fontWeight: 900,
-        fontSize: 38,
-        textAlign: 'center',
-        letterSpacing: 1,
-        fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif',
-        background: 'none',
-        backgroundClip: 'text',
-        WebkitBackgroundClip: 'text',
-        color: 'transparent',
-        backgroundImage: 'linear-gradient(90deg, #7c4dff 0%, #b388ff 100%)',
-        textShadow: '0 2px 12px #b388ff22, 0 1px 1px #fff',
-        lineHeight: 1.1,
-        maxWidth: 800
-      }}>
-        User Information
-      </h2>
-      <TableContainer component={Paper} sx={{
-        maxWidth: 800,
-        margin: '0 auto',
-        boxShadow: 12,
-        borderRadius: 14,
-        overflow: 'hidden',
-        background: 'rgba(255,255,255,0.97)',
-        backdropFilter: 'blur(6px)',
-        fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif'
-      }}>
-        <Table>
-          <TableHead>
-            <TableRow sx={{
-              background: 'linear-gradient(90deg, #7c4dff 0%, #b388ff 100%)',
-              height: 56
-            }}>
-              <TableCell sx={{ fontWeight: 900, fontSize: 20, letterSpacing: 0.5, color: '#fff', border: 0, fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif', textShadow: '0 2px 8px #7c4dff22' }}>Associate ID</TableCell>
-              <TableCell sx={{ fontWeight: 900, fontSize: 20, letterSpacing: 0.5, color: '#fff', border: 0, fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif', textShadow: '0 2px 8px #7c4dff22' }}>Name</TableCell>
-              <TableCell sx={{ fontWeight: 900, fontSize: 20, letterSpacing: 0.5, color: '#fff', border: 0, fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif', textShadow: '0 2px 8px #7c4dff22' }}>Location</TableCell>
-              <TableCell sx={{ fontWeight: 900, fontSize: 20, letterSpacing: 0.5, color: '#fff', border: 0, fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif', textShadow: '0 2px 8px #7c4dff22' }}>Team</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {employees.map((emp, idx) => (
-              <TableRow
-                key={emp._id || emp.name}
-                onClick={() => setEditUser(editUser?.name === emp.name ? null : emp)}
-                hover
-                selected={editUser?.name === emp.name}
-                sx={{
-                  cursor: 'pointer',
-                  background: editUser?.name === emp.name
-                    ? 'linear-gradient(90deg, #7c4dff 0%, #b388ff 100%)' // More bold purple for selected row
-                    : (idx % 2 === 0 ? 'rgba(124,77,255,0.03)' : 'rgba(179,136,255,0.03)'),
-                  transition: 'background 0.2s, box-shadow 0.2s',
-                  '&:hover': {
-                    background: editUser?.name === emp.name
-                      ? 'linear-gradient(90deg, #7c4dff 0%, #b388ff 100%)' // Always show selected color when selected and hovered
-                      : 'linear-gradient(90deg, #b388ff 0%, #7c4dff 100%)', // More distinct purple for hover
-                    boxShadow: 4,
-                  },
-                  borderRadius: 3,
-                  fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif',
-                  fontSize: 16
-                }}
-              >
-                <TableCell sx={{ fontWeight: 700, fontSize: 18, color: '#4b2aad', border: 0, fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif' }}>{emp.associateId && typeof emp.associateId === 'object' && emp.associateId.$numberLong ? emp.associateId.$numberLong : emp.associateId || '-'}</TableCell>
-                <TableCell sx={{ fontWeight: 700, fontSize: 18, color: '#4b2aad', border: 0, fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif' }}>{emp.name}</TableCell>
-                <TableCell sx={{ fontWeight: 500, fontSize: 17, color: '#6a479c', border: 0, fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif' }}>{emp.location}</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: 17, color: editUser?.name === emp.name ? '#fff' : undefined, border: 0, fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif', transition: 'color 0.2s',
-  '&.MuiTableCell-root': {
-    color: 'inherit',
-  },
-  '&:hover': {
-    color: '#fff',
-  }
-}}>{emp.team}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <Box mt={3} display="flex" justifyContent="center" gap={2}>
-        <Button
-          variant="contained"
-          startIcon={<span style={{fontWeight:900, fontSize:22}}>+</span>}
-          sx={{
-            fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif',
-            fontWeight: 800,
-            fontSize: 18,
-            borderRadius: 7,
-            px: 4,
-            py: 1.5,
-            boxShadow: 4,
-            textTransform: 'none',
-            letterSpacing: 0.3,
-            background: 'linear-gradient(90deg, #7c4dff 0%, #b388ff 100%)',
-            color: '#fff',
-            transition: 'background 0.18s, box-shadow 0.18s',
-            '&:hover': {
-              background: 'linear-gradient(90deg, #9575cd 0%, #7c4dff 100%)',
-              boxShadow: '0 2px 12px 0 rgba(124,77,255,0.18)'
-            }
-          }}
-          onClick={() => { setEditUser(null); setModalOpen(false); setTimeout(() => setModalOpen(true), 0); }}
-        >
-          Add User
-        </Button>
-        <Button
-          variant="contained"
-          startIcon={<span style={{fontWeight:900, fontSize:18}}>✎</span>}
-          sx={{
-            fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif',
-            fontWeight: 800,
-            fontSize: 17,
-            borderRadius: 7,
-            px: 4,
-            py: 1.5,
-            boxShadow: 4,
-            textTransform: 'none',
-            letterSpacing: 0.3,
-            background: 'linear-gradient(90deg, #43e97b 0%, #38f9d7 100%)',
-            color: '#222',
-            border: 'none',
-            transition: 'background 0.18s, box-shadow 0.18s',
-            '&:hover': {
-              background: 'linear-gradient(90deg, #38f9d7 0%, #43e97b 100%)',
-              boxShadow: '0 2px 12px 0 rgba(67,233,123,0.18)'
-            },
-            '&.Mui-disabled': {
-              background: '#e0e0e0',
-              color: '#aaa',
-              boxShadow: 'none'
-            }
-          }}
-          disabled={!editUser}
-          onClick={() => setModalOpen(true)}
-        >
-          Edit User
-        </Button>
-        <Button
-          variant="contained"
-          startIcon={<span style={{fontWeight:900, fontSize:18}}>🗑️</span>}
-          sx={{
-            fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif',
-            fontWeight: 800,
-            fontSize: 17,
-            borderRadius: 7,
-            px: 4,
-            py: 1.5,
-            boxShadow: 4,
-            textTransform: 'none',
-            letterSpacing: 0.3,
-            background: 'linear-gradient(90deg, #ff5858 0%, #f09819 100%)',
-            color: '#fff',
-            border: 'none',
-            transition: 'background 0.18s, box-shadow 0.18s',
-            '&:hover': {
-              background: 'linear-gradient(90deg, #f09819 0%, #ff5858 100%)',
-              boxShadow: '0 2px 12px 0 rgba(255,88,88,0.18)'
-            },
-            '&.Mui-disabled': {
-              background: '#f5f5f5',
-              color: '#bbb',
-              boxShadow: 'none'
-            }
-          }}
-          disabled={!editUser}
-          onClick={() => setDeleteUser(editUser)}
-        >
-          Delete User
-        </Button>
-      </Box>
-      {/* Floating Add User Button */}
-      <Box position="fixed" bottom={40} right={60} zIndex={2000}>
-        <Button
-          variant="contained"
-          sx={{
-            borderRadius: '50%',
-            minWidth: 56,
-            minHeight: 56,
-            boxShadow: 6,
-            fontSize: 32,
-            p: 0,
-            background: 'linear-gradient(135deg, #7c4dff 0%, #b388ff 100%)',
-            color: '#fff',
+    <div style={{ padding: '20px', margin: 0, width: '100%', boxSizing: 'border-box' }}>
+      {/* Header Section */}
+      <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems="center" mb={4} gap={2}>
+        <Box>
+          <span style={{
+            display: 'block',
             fontWeight: 900,
-            transition: 'background 0.18s, box-shadow 0.18s',
-            '&:hover': {
-              background: 'linear-gradient(135deg, #b388ff 0%, #7c4dff 100%)',
-              boxShadow: '0 2px 16px 0 rgba(124,77,255,0.18)'
-            }
-          }}
-          onClick={() => { setEditUser(null); setModalOpen(true); }}
-        >
-          +
-        </Button>
+            fontSize: 'clamp(2rem, 5vw, 2.5rem)',
+            letterSpacing: 1,
+            color: '#fff',
+            textShadow: '0 2px 12px rgba(0,0,0,0.1)',
+            fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif',
+            lineHeight: 1.1,
+            textAlign: 'left',
+          }}>
+            User Information
+          </span>
+        </Box>
+        <Box display="flex" gap={2} flexWrap="wrap" justifyContent={{ xs: 'center', md: 'flex-end' }}>
+          <Button
+            variant="contained"
+            startIcon={<span style={{ fontWeight: 900, fontSize: 22 }}>+</span>}
+            sx={{
+              bgcolor: '#7c4dff', color: '#fff', fontWeight: 700, fontSize: 16, px: 3, py: 1.2, borderRadius: 4, boxShadow: 2, textTransform: 'none', letterSpacing: 0.3,
+              '&:hover': { bgcolor: '#651fff' }
+            }}
+            onClick={() => { setEditUser(null); setModalOpen(false); setTimeout(() => setModalOpen(true), 0); }}
+          >
+            Add User
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<span style={{ fontWeight: 900, fontSize: 18 }}>✎</span>}
+            sx={{
+              bgcolor: '#00c853', color: '#fff', fontWeight: 700, fontSize: 16, px: 3, py: 1.2, borderRadius: 4, boxShadow: 2, textTransform: 'none', letterSpacing: 0.3,
+              '&:hover': { bgcolor: '#00b248' },
+              '&.Mui-disabled': { bgcolor: 'rgba(255,255,255,0.3)', color: 'rgba(255,255,255,0.7)' }
+            }}
+            disabled={!editUser}
+            onClick={() => setModalOpen(true)}
+          >
+            Edit User
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<span style={{ fontWeight: 900, fontSize: 18 }}>🗑️</span>}
+            sx={{
+              bgcolor: '#ff1744', color: '#fff', fontWeight: 700, fontSize: 16, px: 3, py: 1.2, borderRadius: 4, boxShadow: 2, textTransform: 'none', letterSpacing: 0.3,
+              '&:hover': { bgcolor: '#d50000' },
+              '&.Mui-disabled': { bgcolor: 'rgba(255,255,255,0.3)', color: 'rgba(255,255,255,0.7)' }
+            }}
+            disabled={!editUser}
+            onClick={() => setDeleteUser(editUser)}
+          >
+            Delete User
+          </Button>
+        </Box>
       </Box>
+
+      {/* Main Content Card */}
+      <Paper elevation={3} sx={{ p: 0, borderRadius: 4, bgcolor: '#fff', overflow: 'hidden', minHeight: '70vh', position: 'relative' }}>
+        {/* Top Gradient Bar */}
+        <Box sx={{ height: 6, background: 'linear-gradient(90deg, #7c4dff 0%, #b388ff 100%)' }} />
+
+        <TableContainer sx={{ maxHeight: '70vh' }}>
+          <Table stickyHeader>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ background: '#fff', borderBottom: '2px solid #f0f0f0', fontWeight: 800, fontSize: 16, color: '#7c4dff', py: 2.5 }}>Associate ID</TableCell>
+                <TableCell sx={{ background: '#fff', borderBottom: '2px solid #f0f0f0', fontWeight: 800, fontSize: 16, color: '#7c4dff', py: 2.5 }}>Name</TableCell>
+                <TableCell sx={{ background: '#fff', borderBottom: '2px solid #f0f0f0', fontWeight: 800, fontSize: 16, color: '#7c4dff', py: 2.5 }}>Location</TableCell>
+                <TableCell sx={{ background: '#fff', borderBottom: '2px solid #f0f0f0', fontWeight: 800, fontSize: 16, color: '#7c4dff', py: 2.5 }}>Team</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {[...employees].sort((a, b) => a.name.localeCompare(b.name)).map((emp, idx) => (
+                <TableRow
+                  key={emp._id || emp.name}
+                  onClick={() => setEditUser(editUser?.name === emp.name ? null : emp)}
+                  hover
+                  selected={editUser?.name === emp.name}
+                  sx={{
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    '&.Mui-selected': {
+                      bgcolor: 'rgba(124, 77, 255, 0.08) !important',
+                      borderLeft: '4px solid #7c4dff'
+                    },
+                    '&.Mui-selected:hover': { bgcolor: 'rgba(124, 77, 255, 0.12) !important' },
+                    '&:hover': {
+                      bgcolor: 'rgba(124, 77, 255, 0.02)',
+                      transform: 'translateX(4px)',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                    }
+                  }}
+                >
+                  <TableCell sx={{ fontWeight: 600, fontSize: 15, color: '#424242', borderBottom: '1px solid #f5f5f5' }}>
+                    {emp.associateId && typeof emp.associateId === 'object' && emp.associateId.$numberLong ? emp.associateId.$numberLong : emp.associateId || '-'}
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: 600, fontSize: 15, color: '#424242', borderBottom: '1px solid #f5f5f5' }}>{emp.name}</TableCell>
+                  <TableCell sx={{ fontWeight: 600, fontSize: 15, color: '#424242', borderBottom: '1px solid #f5f5f5' }}>{emp.location}</TableCell>
+                  <TableCell sx={{ fontWeight: 500, fontSize: 15, color: '#616161', borderBottom: '1px solid #f5f5f5' }}>
+                    <Box component="span" sx={{
+                      px: 1.5, py: 0.5, borderRadius: 2, fontSize: 13, fontWeight: 700,
+                      bgcolor: emp.team === 'Engineering' ? '#e3f2fd' : emp.team === 'HR' ? '#fce4ec' : '#f3e5f5',
+                      color: emp.team === 'Engineering' ? '#1565c0' : emp.team === 'HR' ? '#c2185b' : '#7b1fa2'
+                    }}>
+                      {emp.team}
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
+
+      {/* Modals */}
       <UserModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
@@ -266,92 +187,44 @@ const Users = () => {
       />
       <Dialog open={!!deleteUser} onClose={() => setDeleteUser(null)} PaperProps={{
         style: {
-          background: 'rgba(255,255,255,0.92)',
           borderRadius: 20,
-          boxShadow: '0 8px 40px 0 rgba(255,88,88,0.14), 0 1.5px 18px 0 rgba(124,77,255,0.10)',
           padding: 0,
-          minWidth: 420,
-          minHeight: 220,
-          fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif',
-          backdropFilter: 'blur(10px) saturate(180%)'
+          minWidth: 400,
+          backdropFilter: 'blur(10px)'
         }
       }}>
-        <DialogTitle sx={{
-          textAlign: 'center',
-          fontWeight: 900,
-          fontSize: 26,
-          color: '#ff5858',
-          letterSpacing: 0.5,
-          fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif',
-          background: 'linear-gradient(90deg, #ff5858 0%, #f09819 100%)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          textShadow: '0 2px 8px #ff585822',
-          borderTopLeftRadius: 18,
-          borderTopRightRadius: 18,
-          py: 2
-        }}>Delete User?</DialogTitle>
-        <div style={{
-          textAlign: 'center',
-          fontWeight: 600,
-          fontSize: 19,
-          color: '#333',
-          margin: '0 0 22px 0',
-          fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif',
-          letterSpacing: 0.1
-        }}>
-          Are you sure you want to delete this user?
-        </div>
-        <DialogActions style={{ justifyContent: 'center', gap: 24, padding: '0 28px 32px 28px', marginTop: 8 }}>
+        <DialogTitle sx={{ textAlign: 'center', fontWeight: 800, color: '#d32f2f', fontSize: 24, pt: 3 }}>
+          Delete User?
+        </DialogTitle>
+        <Box px={4} pb={2} textAlign="center">
+          <Typography fontSize={16} color="#555" mb={3}>
+            Are you sure you want to delete <b>{deleteUser?.name}</b>?
+          </Typography>
+        </Box>
+        <DialogActions sx={{ justifyContent: 'center', pb: 4, gap: 2 }}>
+          <Button onClick={() => setDeleteUser(null)} variant="outlined" sx={{ borderRadius: 8, fontWeight: 700, color: '#555', borderColor: '#bbb' }}>
+            Cancel
+          </Button>
           <Button onClick={async () => {
             await deleteEmployee(deleteUser.associateId);
             setDeleteUser(null);
             handleSnackbar('User deleted successfully!');
           }}
             variant="contained"
-            sx={{
-              borderRadius: 8,
-              fontWeight: 700,
-              px: 4,
-              py: 1.2,
-              fontSize: 17,
-              boxShadow: 2,
-              background: 'linear-gradient(90deg, #ff5858 0%, #f09819 100%)',
-              color: '#fff',
-              fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif',
-              transition: 'background 0.18s, box-shadow 0.18s, transform 0.16s',
-              '&:hover': { background: 'linear-gradient(90deg, #f09819 0%, #ff5858 100%)', boxShadow: '0 4px 16px 0 #ff585866', transform: 'scale(1.06)' },
-              '&:active': { boxShadow: '0 2px 8px 0 #ff585844', transform: 'scale(0.97)' }
-            }}
+            sx={{ borderRadius: 8, fontWeight: 700, bgcolor: '#d32f2f', '&:hover': { bgcolor: '#b71c1c' } }}
           >
-            DELETE
-          </Button>
-          <Button onClick={() => setDeleteUser(null)} variant="outlined" sx={{
-            borderRadius: 8,
-            fontWeight: 700,
-            px: 4,
-            py: 1.2,
-            fontSize: 17,
-            boxShadow: 2,
-            background: 'linear-gradient(90deg, #fff 0%, #ede7f6 100%)',
-            border: '2px solid #b39ddb',
-            color: '#7c4dff',
-            fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif',
-            transition: 'background 0.18s, border-color 0.18s, color 0.18s',
-            '&:hover': { background: '#ede7f6', borderColor: '#7c4dff', color: '#5e35b1' },
-            '&:active': { background: '#d1c4e9', borderColor: '#7c4dff', color: '#5e35b1' }
-          }}>
-            CANCEL
+            Delete
           </Button>
         </DialogActions>
       </Dialog>
+
       <Snackbar
         open={snackbar.open}
         autoHideDuration={2500}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
-        <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: '100%' }}>
+        <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: '100%', fontWeight: 600 }}>
           {snackbar.message}
         </Alert>
       </Snackbar>

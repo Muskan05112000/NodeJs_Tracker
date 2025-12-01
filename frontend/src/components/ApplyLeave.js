@@ -18,7 +18,7 @@ const ApplyLeave = () => {
   const [promptOpen, setPromptOpen] = useState(false);
   const [promptMsg, setPromptMsg] = useState("");
   const [promptValue, setPromptValue] = useState("");
-  const [onPromptOk, setOnPromptOk] = useState(() => () => {});
+  const [onPromptOk, setOnPromptOk] = useState(() => () => { });
 
   // Helper for alerts
   const showAlert = (msg) => { setAlertMsg(msg); setAlertOpen(true); };
@@ -39,7 +39,7 @@ const ApplyLeave = () => {
   const [editingLeave, setEditingLeave] = useState(null);
 
   // Get leaves for current month
-  const monthStr = `${year}-${String(month+1).padStart(2, '0')}`;
+  const monthStr = `${year}-${String(month + 1).padStart(2, '0')}`;
   const monthLeaves = leaves.filter(l => l.date.startsWith(monthStr));
 
   const handleDateClick = (date, isNational) => {
@@ -154,91 +154,91 @@ const ApplyLeave = () => {
           }
         }}
         onRevoke={async ({ employee, type, revocationReason }) => {
-           let revoked = false;
-           let reason = revocationReason;
-           if (!reason) {
-             // Store pending revoke info and open prompt
-             setPendingRevoke({ employee, type });
-             showPrompt('Please provide a reason for revoking this leave:', async (val) => {
-               setPromptOpen(false);
-               if (!val) return;
-               // Get logged-in user info from top-level hook
-               let revokedBy = user?.associateId;
-               if (employees && user?.associateId) {
-                 const emp = employees.find(e => String(e.associateId) === String(user.associateId));
-                 if (emp) revokedBy = emp.name;
-               }
-               for (let date of selectedDates) {
-                 const existing = leaves.find(l => l.date === date && l.employee === employee && l.type === type);
-                 if (existing) {
-                   const res = await revokeLeave(existing._id, val, revokedBy);
-                   if (res && res.error) {
-                     setAlertMsg(res.error);
-                     setAlertOpen(true);
-                     continue;
-                   }
-                   revoked = true;
-                 }
-               }
-               setModalOpen(false);
-               setSelectedDates([]);
-               setEditingLeave(null);
-               setLeavesForDate([]);
-               if (revoked) {
-                 setAlertMsg('Leave revoked successfully');
-                 setAlertOpen(true);
-               } else {
-                 setAlertMsg('Input information is not available');
-                 setAlertOpen(true);
-               }
-             });
-             return;
-           }
-           // Get logged-in user info from top-level hook
-           let revokedBy = user?.associateId;
-           if (employees && user?.associateId) {
-             const emp = employees.find(e => String(e.associateId) === String(user.associateId));
-             if (emp) revokedBy = emp.name;
-           }
-           for (let date of selectedDates) {
-             const existing = leaves.find(l => l.date === date && l.employee === employee && l.type === type);
-             if (existing) {
-               const res = await revokeLeave(existing._id, reason, revokedBy);
-               if (res && res.error) {
-                 setAlertMsg(res.error);
-                 setAlertOpen(true);
-                 continue;
-               }
-               revoked = true;
-             }
-           }
-           setModalOpen(false);
-           setSelectedDates([]);
-           setEditingLeave(null);
-           setLeavesForDate([]);
-           if (revoked) {
-             setAlertMsg('Leave revoked successfully');
-             setAlertOpen(true);
-           } else {
-             setAlertMsg('Input information is not available');
-             setAlertOpen(true);
-           }
-         }}
+          let revoked = false;
+          let reason = revocationReason;
+          if (!reason) {
+            // Store pending revoke info and open prompt
+            setPendingRevoke({ employee, type });
+            showPrompt('Please provide a reason for revoking this leave:', async (val) => {
+              setPromptOpen(false);
+              if (!val) return;
+              // Get logged-in user info from top-level hook
+              let revokedBy = user?.associateId;
+              if (employees && user?.associateId) {
+                const emp = employees.find(e => String(e.associateId) === String(user.associateId));
+                if (emp) revokedBy = emp.name;
+              }
+              for (let date of selectedDates) {
+                const existing = leaves.find(l => l.date === date && l.employee === employee && l.type === type);
+                if (existing) {
+                  const res = await revokeLeave(existing._id, val, revokedBy);
+                  if (res && res.error) {
+                    setAlertMsg(res.error);
+                    setAlertOpen(true);
+                    continue;
+                  }
+                  revoked = true;
+                }
+              }
+              setModalOpen(false);
+              setSelectedDates([]);
+              setEditingLeave(null);
+              setLeavesForDate([]);
+              if (revoked) {
+                setAlertMsg('Leave revoked successfully');
+                setAlertOpen(true);
+              } else {
+                setAlertMsg('Input information is not available');
+                setAlertOpen(true);
+              }
+            });
+            return;
+          }
+          // Get logged-in user info from top-level hook
+          let revokedBy = user?.associateId;
+          if (employees && user?.associateId) {
+            const emp = employees.find(e => String(e.associateId) === String(user.associateId));
+            if (emp) revokedBy = emp.name;
+          }
+          for (let date of selectedDates) {
+            const existing = leaves.find(l => l.date === date && l.employee === employee && l.type === type);
+            if (existing) {
+              const res = await revokeLeave(existing._id, reason, revokedBy);
+              if (res && res.error) {
+                setAlertMsg(res.error);
+                setAlertOpen(true);
+                continue;
+              }
+              revoked = true;
+            }
+          }
+          setModalOpen(false);
+          setSelectedDates([]);
+          setEditingLeave(null);
+          setLeavesForDate([]);
+          if (revoked) {
+            setAlertMsg('Leave revoked successfully');
+            setAlertOpen(true);
+          } else {
+            setAlertMsg('Input information is not available');
+            setAlertOpen(true);
+          }
+        }}
       />
-    <PromptDialog
-      open={promptOpen}
-      title={"Input Required"}
-      message={promptMsg}
-      value={promptValue}
-      onChange={setPromptValue}
-      onCancel={() => { setPromptOpen(false); setPromptValue(""); onPromptOk(null); }}
-      onOk={() => { setPromptOpen(false); onPromptOk(promptValue); }}
-    />
-    <AlertDialog
-      open={alertOpen}
-      message={alertMsg}
-      onClose={() => setAlertOpen(false)}
-    />
+      <PromptDialog
+        open={promptOpen}
+        title={"Input Required"}
+        message={promptMsg}
+        value={promptValue}
+        onChange={setPromptValue}
+        onCancel={() => { setPromptOpen(false); setPromptValue(""); onPromptOk(null); }}
+        onOk={() => { setPromptOpen(false); onPromptOk(promptValue); }}
+      />
+      <AlertDialog
+        open={alertOpen}
+        message={alertMsg}
+        onClose={() => setAlertOpen(false)}
+      />
     </>
   );
 };
