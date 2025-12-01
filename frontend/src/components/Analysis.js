@@ -388,14 +388,14 @@ const Analysis = () => {
         </Box>
 
         {/* Charts Grid */}
-        <Grid container spacing={4}>
+        <Grid container spacing={8}>
           {/* Left Column */}
           <Grid item xs={12} lg={6} display="flex" flexDirection="column" gap={4}>
             <Box>
               {/* Donut Chart Only (no line/bar) */}
               <DonutChartOnly startMonth={startMonth} endMonth={endMonth} year={year} />
             </Box>
-            <Box>
+            <Box mt={4}>
               {/* Employee Table Card */}
               <AnalysisTable
                 startMonth={startMonth}
@@ -414,7 +414,7 @@ const Analysis = () => {
               {/* First Bar Chart Card (monthly leave counts only) */}
               <AnalysisCharts month={startMonth} year={year} type="bar1" />
             </Box>
-            <Box>
+            <Box mt={4}>
               {/* Second Bar Chart Card */}
               <AnalysisCharts month={startMonth} year={year} type="bar2" />
             </Box>
