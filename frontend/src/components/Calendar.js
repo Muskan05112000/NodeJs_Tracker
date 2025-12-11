@@ -34,7 +34,7 @@ function Calendar({
     const checkPopup = async () => {
       // 1. Check Global Trigger (Admin Override)
       try {
-        const res = await fetch('http://localhost:4000/api/config/wrapped-trigger');
+        const res = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:4000/api'}/config/wrapped-trigger`);
         const data = await res.json();
         if (data.value) {
           const serverTriggerTime = parseInt(data.value);
@@ -356,7 +356,7 @@ function Calendar({
             <IconButton onClick={async () => {
               if (window.confirm("GLOBAL TRIGGER: This will popup the 'Wrapped' letter for EVERY user on their next refresh. Are you sure?")) {
                 try {
-                  await fetch('http://localhost:4000/api/config/trigger-wrapped', { method: 'POST' });
+                  await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:4000/api'}/config/trigger-wrapped`, { method: 'POST' });
                   alert("Trigger sent! Users will see the popup on next reload.");
                 } catch (e) {
                   alert("Failed to send trigger.");
