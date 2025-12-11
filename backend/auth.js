@@ -30,7 +30,7 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid Username or password' });
     }
     console.log('Login successful for:', username);
-    res.json({ associateId: user.associateId, role: user.role });
+    res.json({ associateId: user.associateId, role: user.role, username: user.username });
   } catch (err) {
     console.error('Error during login:', err);
     res.status(500).json({ error: 'Server error' });

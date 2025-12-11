@@ -1,13 +1,16 @@
 import React, { useState } from "react";
 import '../globalStyles.css';
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Box, List, ListItemIcon, ListItemText, ListItemButton } from "@mui/material";
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import GroupIcon from '@mui/icons-material/Group';
 import AnalyticsIcon from '@mui/icons-material/Analytics';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import LeaveWrapped from "./LeaveWrapped";
 
 const Sidebar = ({ userRole }) => {
   const [hovered, setHovered] = useState(false);
+  const [wrappedOpen, setWrappedOpen] = useState(false);
   const canAccessUsers = userRole === 'Manager' || userRole === 'Lead';
   const canAccessAnalysis = userRole === 'Manager' || userRole === 'Lead';
   return (
@@ -43,108 +46,37 @@ const Sidebar = ({ userRole }) => {
         document.body.style.setProperty('--sidebar-width', '60px');
       }}
     >
-    {/* Branding/Logo */}
-    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 4 }}>
-      <Box sx={{
-        background: 'linear-gradient(135deg, #7c4dff 0%, #b388ff 100%)',
-        borderRadius: 2,
-        width: 44,
-        height: 44,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        boxShadow: '0 2px 10px 0 #b388ff44'
-      }}>
-        <GroupIcon sx={{ color: '#fff', fontSize: 28 }} />
+      {/* Branding/Logo */}
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 4 }}>
+        <Box sx={{
+          background: 'linear-gradient(135deg, #7c4dff 0%, #b388ff 100%)',
+          borderRadius: 2,
+          width: 44,
+          height: 44,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 2px 10px 0 #b388ff44'
+        }}>
+          <GroupIcon sx={{ color: '#fff', fontSize: 28 }} />
+        </Box>
+        {hovered && (
+          <span
+            style={{
+              fontWeight: 800,
+              fontSize: 22,
+              letterSpacing: 0.5,
+              color: '#fff',
+              fontFamily: 'Inter, Segoe UI, Roboto, Arial, sans-serif',
+              marginLeft: 12
+            }}
+          >
+            Leave Tracker
+          </span>
+        )}
       </Box>
-      {hovered && (
-        <span
-          style={{
-            fontWeight: 800,
-            fontSize: 22,
-            letterSpacing: 0.5,
-            color: '#fff',
-            fontFamily: 'Inter, Segoe UI, Roboto, Arial, sans-serif',
-            marginLeft: 12
-          }}
-        >
-          Leave Tracker
-        </span>
-      )}
-    </Box>
-    <List sx={{ flex: 1 }}>
-      <NavLink to="/" style={({ isActive }) => ({ textDecoration: 'none', color: isActive ? '#1976d2' : '#fff' })} end>
-        <ListItemButton sx={{
-          borderRadius: 3,
-          mb: 1.5,
-          px: 2.5,
-          py: 1.5,
-          background: ({ isActive }) => isActive ? '#e3f2fd' : 'transparent',
-          color: ({ isActive }) => isActive ? '#1976d2' : '#fff',
-          fontWeight: 700,
-          fontSize: 18,
-          letterSpacing: 0.3,
-          transition: 'background 0.2s, color 0.2s',
-          '&:hover': {
-            background: '#e3f2fd',
-            color: '#1976d2',
-            boxShadow: 2,
-          }
-        }}>
-          <ListItemIcon sx={{ color: 'inherit', minWidth: 36 }}><CalendarMonthIcon fontSize="medium" /></ListItemIcon>
-          {hovered && (
-            <ListItemText
-              primary={<span style={{ fontFamily: 'Inter, Segoe UI, Roboto, Arial, sans-serif', fontWeight: 700, fontSize: 18 }}>Apply Leave</span>}
-            />
-          )}
-        </ListItemButton>
-      </NavLink>
-      {userRole === 'Employee' && (
-        <ListItemButton disabled sx={{
-          borderRadius: 3,
-          mb: 1.5,
-          px: 2.5,
-          py: 1.5,
-          opacity: 0.5,
-          fontWeight: 700,
-          fontSize: 18,
-          letterSpacing: 0.3,
-          color: '#fff',
-          cursor: 'not-allowed',
-          background: 'transparent',
-        }}>
-          <ListItemIcon sx={{ color: 'inherit', minWidth: 36 }}><GroupIcon fontSize="medium" /></ListItemIcon>
-          {hovered && (
-            <ListItemText
-              primary={<span style={{ fontFamily: 'Segoe UI, Roboto, Arial, sans-serif', fontWeight: 700, fontSize: 18, display: 'flex', alignItems: 'center' }}>Users <span style={{ marginLeft: 7, display: 'inline-flex', alignItems: 'center' }}>{React.createElement(require('@mui/icons-material/LockOutlined').default, { fontSize: 'small' })}</span></span>}
-            />
-          )}
-        </ListItemButton>
-      )}
-      {userRole === 'Employee' && (
-        <ListItemButton disabled sx={{
-          borderRadius: 3,
-          mb: 1.5,
-          px: 2.5,
-          py: 1.5,
-          opacity: 0.5,
-          fontWeight: 700,
-          fontSize: 18,
-          letterSpacing: 0.3,
-          color: '#fff',
-          cursor: 'not-allowed',
-          background: 'transparent',
-        }}>
-          <ListItemIcon sx={{ color: 'inherit', minWidth: 36 }}><AnalyticsIcon fontSize="medium" /></ListItemIcon>
-          {hovered && (
-            <ListItemText
-              primary={<span style={{ fontFamily: 'Segoe UI, Roboto, Arial, sans-serif', fontWeight: 700, fontSize: 18, display: 'flex', alignItems: 'center' }}>Analysis <span style={{ marginLeft: 7, display: 'inline-flex', alignItems: 'center' }}>{React.createElement(require('@mui/icons-material/LockOutlined').default, { fontSize: 'small' })}</span></span>}
-            />
-          )}
-        </ListItemButton>
-      )}
-      {userRole !== 'Employee' && (
-        <NavLink to="/users" style={({ isActive }) => ({ textDecoration: 'none', color: isActive ? '#1976d2' : '#fff' })}>
+      <List sx={{ flex: 1 }}>
+        <NavLink to="/" style={({ isActive }) => ({ textDecoration: 'none', color: isActive ? '#1976d2' : '#fff' })} end>
           <ListItemButton sx={{
             borderRadius: 3,
             mb: 1.5,
@@ -161,54 +93,95 @@ const Sidebar = ({ userRole }) => {
               color: '#1976d2',
               boxShadow: 2,
             }
+          }}>
+            <ListItemIcon sx={{ color: 'inherit', minWidth: 36 }}><CalendarMonthIcon fontSize="medium" /></ListItemIcon>
+            {hovered && (
+              <ListItemText
+                primary={<span style={{ fontFamily: 'Inter, Segoe UI, Roboto, Arial, sans-serif', fontWeight: 700, fontSize: 18 }}>Apply Leave</span>}
+              />
+            )}
+          </ListItemButton>
+        </NavLink>
+
+        <NavLink to="/leaderboard" style={({ isActive }) => ({ textDecoration: 'none', color: isActive ? '#1976d2' : '#fff' })} end>
+          <ListItemButton sx={{
+            borderRadius: 3,
+            mb: 1.5,
+            px: 2.5,
+            py: 1.5,
+            background: ({ isActive }) => isActive ? '#e3f2fd' : 'transparent',
+            color: ({ isActive }) => isActive ? '#1976d2' : '#fff',
+            fontWeight: 700,
+            fontSize: 18,
+            letterSpacing: 0.3,
+            transition: 'background 0.2s, color 0.2s',
+            '&:hover': {
+              background: '#e3f2fd',
+              color: '#1976d2',
+              boxShadow: 2,
+            }
+          }}>
+            <ListItemIcon sx={{ color: 'inherit', minWidth: 36 }}><EmojiEventsIcon fontSize="medium" /></ListItemIcon>
+            {hovered && (
+              <ListItemText
+                primary={<span style={{ fontFamily: 'Inter, Segoe UI, Roboto, Arial, sans-serif', fontWeight: 700, fontSize: 18 }}>Leaderboard</span>}
+              />
+            )}
+          </ListItemButton>
+        </NavLink>
+        {userRole === 'Employee' && (
+          <ListItemButton disabled sx={{
+            borderRadius: 3,
+            mb: 1.5,
+            px: 2.5,
+            py: 1.5,
+            opacity: 0.5,
+            fontWeight: 700,
+            fontSize: 18,
+            letterSpacing: 0.3,
+            color: '#fff',
+            cursor: 'not-allowed',
+            background: 'transparent',
           }}>
             <ListItemIcon sx={{ color: 'inherit', minWidth: 36 }}><GroupIcon fontSize="medium" /></ListItemIcon>
             {hovered && (
               <ListItemText
-                primary={<span style={{ fontFamily: 'Segoe UI, Roboto, Arial, sans-serif', fontWeight: 700, fontSize: 18 }}>Users</span>}
+                primary={<span style={{ fontFamily: 'Segoe UI, Roboto, Arial, sans-serif', fontWeight: 700, fontSize: 18, display: 'flex', alignItems: 'center' }}>Users <span style={{ marginLeft: 7, display: 'inline-flex', alignItems: 'center' }}>{React.createElement(require('@mui/icons-material/LockOutlined').default, { fontSize: 'small' })}</span></span>}
               />
             )}
           </ListItemButton>
-        </NavLink>
-      )}
-      {userRole !== 'Employee' && (
-        <NavLink to="/analysis" style={({ isActive }) => ({ textDecoration: 'none', color: isActive ? '#1976d2' : '#fff' })}>
-          <ListItemButton sx={{
+        )}
+        {userRole === 'Employee' && (
+          <ListItemButton disabled sx={{
             borderRadius: 3,
             mb: 1.5,
             px: 2.5,
             py: 1.5,
-            background: ({ isActive }) => isActive ? '#e3f2fd' : 'transparent',
-            color: ({ isActive }) => isActive ? '#1976d2' : '#fff',
+            opacity: 0.5,
             fontWeight: 700,
             fontSize: 18,
             letterSpacing: 0.3,
-            transition: 'background 0.2s, color 0.2s',
-            '&:hover': {
-              background: '#e3f2fd',
-              color: '#1976d2',
-              boxShadow: 2,
-            }
+            color: '#fff',
+            cursor: 'not-allowed',
+            background: 'transparent',
           }}>
             <ListItemIcon sx={{ color: 'inherit', minWidth: 36 }}><AnalyticsIcon fontSize="medium" /></ListItemIcon>
             {hovered && (
               <ListItemText
-                primary={<span style={{ fontFamily: 'Segoe UI, Roboto, Arial, sans-serif', fontWeight: 700, fontSize: 18 }}>Analysis</span>}
+                primary={<span style={{ fontFamily: 'Segoe UI, Roboto, Arial, sans-serif', fontWeight: 700, fontSize: 18, display: 'flex', alignItems: 'center' }}>Analysis <span style={{ marginLeft: 7, display: 'inline-flex', alignItems: 'center' }}>{React.createElement(require('@mui/icons-material/LockOutlined').default, { fontSize: 'small' })}</span></span>}
               />
             )}
           </ListItemButton>
-        </NavLink>
-      )}
-      {(userRole === 'Lead') ? (
-        <NavLink to="/holiday-update" style={{ textDecoration: 'none' }}>
-          {({ isActive }) => (
+        )}
+        {userRole !== 'Employee' && (
+          <NavLink to="/users" style={({ isActive }) => ({ textDecoration: 'none', color: isActive ? '#1976d2' : '#fff' })}>
             <ListItemButton sx={{
               borderRadius: 3,
               mb: 1.5,
               px: 2.5,
               py: 1.5,
-              background: isActive ? '#e3f2fd' : 'transparent',
-              color: isActive ? '#1976d2' : '#fff',
+              background: ({ isActive }) => isActive ? '#e3f2fd' : 'transparent',
+              color: ({ isActive }) => isActive ? '#1976d2' : '#fff',
               fontWeight: 700,
               fontSize: 18,
               letterSpacing: 0.3,
@@ -219,45 +192,132 @@ const Sidebar = ({ userRole }) => {
                 boxShadow: 2,
               }
             }}>
-              <ListItemIcon sx={{ color: 'inherit', minWidth: 36 }}><CalendarMonthIcon fontSize="medium" /></ListItemIcon>
+              <ListItemIcon sx={{ color: 'inherit', minWidth: 36 }}><GroupIcon fontSize="medium" /></ListItemIcon>
               {hovered && (
                 <ListItemText
-                  primary={<span style={{ fontFamily: 'Segoe UI, Roboto, Arial, sans-serif', fontWeight: 700, fontSize: 18 }}>Holiday Update</span>}
+                  primary={<span style={{ fontFamily: 'Segoe UI, Roboto, Arial, sans-serif', fontWeight: 700, fontSize: 18 }}>Users</span>}
                 />
               )}
             </ListItemButton>
-          )}
-        </NavLink>
-      ) : (
+          </NavLink>
+        )}
+        {userRole !== 'Employee' && (
+          <NavLink to="/analysis" style={({ isActive }) => ({ textDecoration: 'none', color: isActive ? '#1976d2' : '#fff' })}>
+            <ListItemButton sx={{
+              borderRadius: 3,
+              mb: 1.5,
+              px: 2.5,
+              py: 1.5,
+              background: ({ isActive }) => isActive ? '#e3f2fd' : 'transparent',
+              color: ({ isActive }) => isActive ? '#1976d2' : '#fff',
+              fontWeight: 700,
+              fontSize: 18,
+              letterSpacing: 0.3,
+              transition: 'background 0.2s, color 0.2s',
+              '&:hover': {
+                background: '#e3f2fd',
+                color: '#1976d2',
+                boxShadow: 2,
+              }
+            }}>
+              <ListItemIcon sx={{ color: 'inherit', minWidth: 36 }}><AnalyticsIcon fontSize="medium" /></ListItemIcon>
+              {hovered && (
+                <ListItemText
+                  primary={<span style={{ fontFamily: 'Segoe UI, Roboto, Arial, sans-serif', fontWeight: 700, fontSize: 18 }}>Analysis</span>}
+                />
+              )}
+            </ListItemButton>
+          </NavLink>
+        )}
+        {(userRole === 'Lead') ? (
+          <NavLink to="/holiday-update" style={{ textDecoration: 'none' }}>
+            {({ isActive }) => (
+              <ListItemButton sx={{
+                borderRadius: 3,
+                mb: 1.5,
+                px: 2.5,
+                py: 1.5,
+                background: isActive ? '#e3f2fd' : 'transparent',
+                color: isActive ? '#1976d2' : '#fff',
+                fontWeight: 700,
+                fontSize: 18,
+                letterSpacing: 0.3,
+                transition: 'background 0.2s, color 0.2s',
+                '&:hover': {
+                  background: '#e3f2fd',
+                  color: '#1976d2',
+                  boxShadow: 2,
+                }
+              }}>
+                <ListItemIcon sx={{ color: 'inherit', minWidth: 36 }}><CalendarMonthIcon fontSize="medium" /></ListItemIcon>
+                {hovered && (
+                  <ListItemText
+                    primary={<span style={{ fontFamily: 'Segoe UI, Roboto, Arial, sans-serif', fontWeight: 700, fontSize: 18 }}>Holiday Update</span>}
+                  />
+                )}
+              </ListItemButton>
+            )}
+          </NavLink>
+        ) : (
+          <ListItemButton
+            sx={{
+              borderRadius: 3,
+              mb: 1.5,
+              px: 2.5,
+              py: 1.5,
+              color: '#fff',
+              cursor: 'not-allowed',
+              background: 'transparent',
+              opacity: 0.5,
+              fontWeight: 700,
+              fontSize: 18,
+              letterSpacing: 0.3,
+            }}
+            disabled
+          >
+            <ListItemIcon sx={{ color: 'inherit', minWidth: 36 }}>
+              {React.createElement(require('@mui/icons-material/LockOutlined').default, { fontSize: 'medium' })}
+            </ListItemIcon>
+            {hovered && (
+              <ListItemText
+                primary={<span style={{ fontFamily: 'Segoe UI, Roboto, Arial, sans-serif', fontWeight: 700, fontSize: 18 }}>Holiday Update</span>}
+              />
+            )}
+          </ListItemButton>
+        )}
         <ListItemButton
+          onClick={() => setWrappedOpen(true)}
           sx={{
             borderRadius: 3,
             mb: 1.5,
             px: 2.5,
             py: 1.5,
-            color: '#fff',
-            cursor: 'not-allowed',
             background: 'transparent',
-            opacity: 0.5,
+            color: '#fff',
             fontWeight: 700,
             fontSize: 18,
             letterSpacing: 0.3,
+            transition: 'background 0.2s, color 0.2s',
+            '&:hover': {
+              background: '#e3f2fd',
+              color: '#1976d2',
+              boxShadow: 2,
+            }
           }}
-          disabled
         >
           <ListItemIcon sx={{ color: 'inherit', minWidth: 36 }}>
-            {React.createElement(require('@mui/icons-material/LockOutlined').default, { fontSize: 'medium' })}
+            <span style={{ fontSize: 20 }}>🎁</span>
           </ListItemIcon>
           {hovered && (
             <ListItemText
-              primary={<span style={{ fontFamily: 'Segoe UI, Roboto, Arial, sans-serif', fontWeight: 700, fontSize: 18 }}>Holiday Update</span>}
+              primary={<span style={{ fontFamily: 'Segoe UI, Roboto, Arial, sans-serif', fontWeight: 700, fontSize: 18 }}>My Wrapped</span>}
             />
           )}
         </ListItemButton>
-      )}
-    </List>
-  </Box>
-);
+      </List>
+      <LeaveWrapped open={wrappedOpen} onClose={() => setWrappedOpen(false)} />
+    </Box>
+  );
 
 }
 

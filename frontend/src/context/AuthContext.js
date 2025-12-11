@@ -37,7 +37,7 @@ export function AuthProvider({ children }) {
         return false;
       }
       const data = await res.json();
-      const userObj = { associateId: data.associateId, role: data.role };
+      const userObj = { associateId: data.associateId, role: data.role, username: data.username };
       setUser(userObj);
       setLoading(false);
       return true;

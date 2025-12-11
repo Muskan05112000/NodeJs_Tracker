@@ -91,9 +91,14 @@ app.get('*', (req, res) => {
   }
 });
 const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://Admin:Admin@cluster0.ge3ezsi.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
+
+// Set buffer timeout to 5s to prevent operations from hanging indefinitely if DB is down
+mongoose.set('bufferTimeoutMS', 5000);
+
 mongoose.connect(MONGO_URI, {
   useNewUrlParser: true,
-  useUnifiedTopology: true
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 5000 // Timeout after 5s instead of hanging
 }).then(() => console.log('MongoDB connected'))
   .catch((err) => console.error('MongoDB connection error:', err));
 
@@ -105,6 +110,7 @@ mongoose.connect(MONGO_URI, {
 //});
 //const Employee = mongoose.model('Employee', employeeSchema);
 const Employee = require('./models/Employee');
+const Leave = require('./models/Leave'); // Import Leave model
 
 const holidaySchema = new mongoose.Schema({
   occasion: String,
@@ -114,16 +120,10 @@ const holidaySchema = new mongoose.Schema({
 });
 const Holiday = mongoose.model('Holiday', holidaySchema);
 
-const leaveSchema = new mongoose.Schema({
-  date: String, // ISO format
-  employee: String, // employee name
-  type: { type: String, enum: ['Planned', 'Emergency', 'Sick', 'HalfDay'] },
-  status: { type: String, enum: ['Active', 'Revoked'], default: 'Active' },
-  revokedAt: Date,
-  revokedBy: String,
-  revocationReason: String
-});
-const Leave = mongoose.model('Leave', leaveSchema);
+// --- Analysis Routes ---
+const analysisController = require('./controllers/analysisController');
+app.get('/api/analysis/top-leavers', analysisController.getTopLeavers);
+app.get('/api/analysis/wrapped', analysisController.getLeaveWrapped);
 
 // --- Employees ---
 app.get('/api/employees', async (req, res) => {
@@ -132,7 +132,32 @@ app.get('/api/employees', async (req, res) => {
 });
 
 const User = require('./models/User');
+const Config = require('./models/Config'); // Import Config model
 const bcrypt = require('bcryptjs');
+
+// --- Config / Admin Routes ---
+app.get('/api/config/wrapped-trigger', async (req, res) => {
+  try {
+    const config = await Config.findOne({ key: 'wrappedTriggerAt' });
+    res.json({ value: config ? config.value : null });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/config/trigger-wrapped', async (req, res) => {
+  try {
+    const now = Date.now().toString();
+    const config = await Config.findOneAndUpdate(
+      { key: 'wrappedTriggerAt' },
+      { value: now },
+      { upsert: true, new: true }
+    );
+    res.json(config);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 app.post('/api/employees', async (req, res) => {
   try {

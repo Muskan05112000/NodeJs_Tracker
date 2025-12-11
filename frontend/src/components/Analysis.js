@@ -5,6 +5,7 @@ import MenuItem from '@mui/material/MenuItem';
 import SendMailDialog from "./SendMailDialog";
 import AnalysisCharts from "./AnalysisCharts";
 import AnalysisTable from "./AnalysisTable";
+import TopLeavers from "./TopLeavers";
 import DonutChartOnly from "./DonutChartOnly";
 
 import { useContext } from "react";
@@ -245,6 +246,11 @@ const Analysis = () => {
 
       {/* Main Content Card */}
       <Paper elevation={3} sx={{ p: 4, borderRadius: 4, bgcolor: '#fff', minHeight: '80vh' }}>
+
+        {/* Top Leavers Component */}
+        <Box mb={4}>
+          <TopLeavers />
+        </Box>
 
         {/* Filter Row */}
         <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} gap={3} mb={4} width="100%">

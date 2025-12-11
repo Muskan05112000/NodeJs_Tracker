@@ -10,6 +10,7 @@ import HolidayUpdate from "./components/HolidayUpdate";
 import { AppProvider } from "./context/AppContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import Login from "./components/Login";
+import LeaderboardPage from "./components/LeaderboardPage";
 
 const roleOptions = ['Employee', 'Manager', 'Lead'];
 
@@ -73,6 +74,7 @@ const AppRoutes = () => {
           <Route path="/users" element={<ProtectedRoute element={<Users />} allowedRoles={['Manager', 'Lead']} userRole={user.role} />} />
           <Route path="/analysis" element={<ProtectedRoute element={<Analysis />} allowedRoles={['Manager', 'Lead']} userRole={user.role} />} />
           <Route path="/holiday-update" element={<HolidayUpdate />} />
+          <Route path="/leaderboard" element={<LeaderboardPage />} />
           {/* Redirect any unknown route to ApplyLeave */}
           <Route path="*" element={<ApplyLeave />} />
         </Routes>
