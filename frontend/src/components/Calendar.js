@@ -2,7 +2,8 @@ import React, { useState, useEffect, useContext } from "react";
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays } from "date-fns";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
-import { IconButton, Typography, Box, Dialog } from "@mui/material";
+import SendIcon from '@mui/icons-material/Send';
+import { IconButton, Typography, Box, Dialog, Button, DialogTitle, DialogContent, DialogContentText, DialogActions, Snackbar, Alert } from "@mui/material";
 import LeaveWrapped from "./LeaveWrapped";
 import { AppContext } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
@@ -23,6 +24,25 @@ function Calendar({
   const { user } = useAuth();
   const [wrappedOpen, setWrappedOpen] = useState(false);
   const [teaserOpen, setTeaserOpen] = useState(false);
+
+  // UI State for Admin Trigger
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+
+  const handleConfirmOpen = () => setConfirmOpen(true);
+  const handleConfirmClose = () => setConfirmOpen(false);
+
+  const handleSendTrigger = async () => {
+    handleConfirmClose();
+    try {
+      await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:4000/api'}/config/trigger-wrapped`, { method: 'POST' });
+      setSnackbar({ open: true, message: '✉️ Letters Sent! Everyone will see "Wrapped" on their next refresh.', severity: 'success' });
+    } catch (e) {
+      setSnackbar({ open: true, message: 'Failed to send trigger. Please try again.', severity: 'error' });
+    }
+  };
+
+  const handleSnackbarClose = () => setSnackbar({ ...snackbar, open: false });
   const currentMonth = new Date(year, month);
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(monthStart);
@@ -34,44 +54,55 @@ function Calendar({
     const checkPopup = async () => {
       // 1. Check Global Trigger (Admin Override)
       try {
-        const res = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:4000/api'}/config/wrapped-trigger`);
+        console.log("Checking for global wrapped trigger...");
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+
+        const res = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:4000/api'}/config/wrapped-trigger?t=${Date.now()}`, {
+          headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' },
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
         const data = await res.json();
+        console.log("Trigger Config Response:", data);
+
         if (data.value) {
           const serverTriggerTime = parseInt(data.value);
-          const lastSeenTrigger = parseInt(localStorage.getItem('wrappedTriggerSeenAt') || '0');
+          // Use associateId as primary key (fallback to username)
+          const userId = user?.associateId || user?.username || 'anon';
+          const storageKeyTrigger = `wrappedTriggerSeenAt_${userId}`;
+          const storageKeyLastShown = `wrappedLastShown_${userId}`;
+
+          const lastSeenTrigger = parseInt(localStorage.getItem(storageKeyTrigger) || '0');
+
+          console.log(`Trigger Check for User [${userId}]: Server(${serverTriggerTime}) > Client(${lastSeenTrigger})? ${serverTriggerTime > lastSeenTrigger}`);
 
           if (serverTriggerTime > lastSeenTrigger) {
             console.log("Wrapped: Global Admin Trigger Detected!");
             setTeaserOpen(true);
-            localStorage.setItem('wrappedTriggerSeenAt', serverTriggerTime.toString());
-            localStorage.removeItem('wrappedLastShown'); // Reset cooldown
+            localStorage.setItem(storageKeyTrigger, serverTriggerTime.toString());
+            // Clear the 24h cooldown too so it shows immediately even if they saw the 'natural' one recently
+            localStorage.removeItem(storageKeyLastShown);
             return; // Stop here, priority to Admin
+          } else {
+            console.log("Wrapped: Trigger already seen or older.");
           }
+        } else {
+          console.log("Wrapped: No global trigger set.");
         }
       } catch (err) {
         console.error("Failed to check global trigger", err);
       }
 
-      // 2. Normal Date Window Logic
-      const today = new Date();
-      const m = today.getMonth(); // 0-based: Dec=11, Jan=0
-      const d = today.getDate();
-      const isWindow = (m === 11 && d >= 10) || (m === 0 && d <= 10);
-
-      if (isWindow) {
-        const lastShown = localStorage.getItem('wrappedLastShown');
-        const now = Date.now();
-        const COOLDOWN = 5 * 60 * 60 * 1000;
-
-        if (!lastShown || now - parseInt(lastShown) > COOLDOWN) {
-          setTeaserOpen(true);
-          localStorage.setItem('wrappedLastShown', now.toString());
-        }
-      }
+      // 2. Normal Date Window Logic - DISABLED BY USER REQUEST (Only Admin Trigger works)
     };
 
-    checkPopup();
-  }, []);
+
+    if (user) {
+      checkPopup();
+    }
+  }, [user]);
 
   // Always show 6 rows (6*7=42 days)
   // Build a 2D array: rows[week][col] for per-row height logic
@@ -175,148 +206,154 @@ function Calendar({
               paddingRight: 2
             }}>{format(cell.dayObj, "d")}</span>
             {/* Regional Holiday block (left-aligned, stacked, small, white) */}
-            {cell.isRegional && cell.holiday && (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'flex-start',
-                  justifyContent: 'flex-start',
-                  width: '100%',
-                  marginBottom: 4,
-                  marginTop: 2,
-                  fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif',
-                  fontSize: 11,
-                  fontWeight: 600,
-                  lineHeight: 1.3,
-                  textAlign: 'left',
-                  letterSpacing: 0.2,
-                  padding: '2px 10px',
-                  borderRadius: 14,
-                  background: 'linear-gradient(90deg, #64b5f6 0%, #9575cd 100%)',
-                  color: '#fff',
-                  boxShadow: '0 2px 8px 0 rgba(100,181,246,0.10)',
-                  transition: 'box-shadow 0.15s, background 0.15s',
-                  cursor: 'pointer',
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.boxShadow = '0 4px 16px 2px #9575cd33';
-                  e.currentTarget.style.background = 'linear-gradient(90deg, #9575cd 0%, #64b5f6 100%)';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.boxShadow = '0 2px 8px 0 rgba(100,181,246,0.10)';
-                  e.currentTarget.style.background = 'linear-gradient(90deg, #64b5f6 0%, #9575cd 100%)';
-                }}
-              >
-                <span style={{ fontWeight: 900, fontSize: 11, letterSpacing: 0.3, textShadow: '0 1px 2px #0002' }}>🌐 Regional Holiday</span>
-                <span style={{ fontWeight: 700, fontSize: 11 }}>{cell.holiday.occasion}</span>
-                <span style={{ fontWeight: 400, fontSize: 10, opacity: 0.92 }}>{Array.isArray(cell.holiday.locations) ? cell.holiday.locations.join(', ') : cell.holiday.locations}</span>
-              </div>
-            )}
-            {/* National Holiday (smaller, left-aligned) */}
-            {cell.isNational && cell.holiday && (
-              <span
-                style={{
-                  display: 'inline-block',
-                  fontWeight: 800,
-                  color: '#fff',
-                  background: 'linear-gradient(90deg, #ffb347 0%, #ffcc33 100%)',
-                  borderRadius: 14,
-                  fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif',
-                  fontSize: 11,
-                  lineHeight: 1.3,
-                  marginBottom: 2,
-                  padding: '3px 10px',
-                  boxShadow: '0 2px 8px 0 rgba(255,193,7,0.11)',
-                  letterSpacing: 0.2,
-                  textShadow: '0 1px 2px #0001',
-                  transition: 'box-shadow 0.15s, background 0.15s',
-                  cursor: 'pointer',
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.boxShadow = '0 4px 16px 2px #ffb34755';
-                  e.currentTarget.style.background = 'linear-gradient(90deg, #ffcc33 0%, #ffb347 100%)';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.boxShadow = '0 2px 8px 0 rgba(255,193,7,0.11)';
-                  e.currentTarget.style.background = 'linear-gradient(90deg, #ffb347 0%, #ffcc33 100%)';
-                }}
-              >
-                🏵 National Holiday<br /><span style={{ fontWeight: 700 }}>{cell.holiday.occasion}</span>
-              </span>
-            )}
-            {/* Leave entries (appear below holiday info, with spacing) */}
-            {cell.dayLeaves.map((leave, idx) => (
-              <span
-                key={idx}
-                style={{
-                  marginTop: 5,
-                  marginBottom: 2,
-                  background:
-                    leave.status === 'Revoked'
-                      ? 'linear-gradient(90deg, #e0e0e0 0%, #bdbdbd 100%)'
-                      : leave.type === 'HalfDay'
-                        ? '#bfcf87'
-                        : leave.type === 'Planned'
-                          ? 'linear-gradient(90deg, #43e97b 0%, #38f9d7 100%)'
-                          : leave.type === 'Emergency'
-                            ? 'linear-gradient(90deg, #ff5858 0%, #f09819 100%)'
-                            : 'linear-gradient(90deg, #f7971e 0%, #ffd200 100%)',
-                  color: leave.status === 'Revoked' ? '#888' : leave.type === 'Emergency' ? '#fff' : '#222',
-                  borderRadius: 16,
-                  padding: '3px 12px',
-                  fontSize: 13,
-                  fontWeight: 700,
-                  fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif',
-                  display: 'inline-block',
-                  boxSizing: 'border-box',
-                  wordBreak: 'break-word',
-                  whiteSpace: 'normal',
-                  cursor: leave.status === 'Revoked' ? 'not-allowed' : 'pointer',
-                  boxShadow: '0 2px 10px 0 rgba(60,60,60,0.10)',
-                  letterSpacing: 0.2,
-                  transition: 'box-shadow 0.18s, transform 0.18s',
-                  opacity: leave.status === 'Revoked' ? 0.6 : 1,
-                  textDecoration: leave.status === 'Revoked' ? 'line-through' : 'none',
-                  position: 'relative',
-                }}
-                title={leave.status === 'Revoked' ? `Revoked by: ${leave.revokedBy || 'N/A'} \nRevoked at: ${leave.revokedAt ? new Date(leave.revokedAt).toLocaleString() : 'N/A'} \nReason: ${leave.revocationReason || 'N/A'} ` : ''}
-                onMouseEnter={e => {
-                  e.currentTarget.style.boxShadow = '0 4px 16px 2px rgba(124,77,255,0.13)';
-                  e.currentTarget.style.transform = 'scale(1.06)';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.boxShadow = '0 2px 10px 0 rgba(60,60,60,0.10)';
-                  e.currentTarget.style.transform = 'scale(1)';
-                }}
-                onClick={e => {
-                  if (leave.status === 'Revoked') return;
-                  e.stopPropagation();
-                  if (typeof onLeaveClick === 'function') {
-                    onLeaveClick(cell.key, leave);
-                  }
-                }}
-              >
-                {leave.employee} - {leave.type}
-                {leave.status === 'Revoked' && (
-                  <span style={{
-                    background: '#d32f2f',
+            {
+              cell.isRegional && cell.holiday && (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    justifyContent: 'flex-start',
+                    width: '100%',
+                    marginBottom: 4,
+                    marginTop: 2,
+                    fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    lineHeight: 1.3,
+                    textAlign: 'left',
+                    letterSpacing: 0.2,
+                    padding: '2px 10px',
+                    borderRadius: 14,
+                    background: 'linear-gradient(90deg, #64b5f6 0%, #9575cd 100%)',
                     color: '#fff',
-                    borderRadius: 8,
-                    fontSize: 10,
-                    fontWeight: 900,
-                    marginLeft: 8,
-                    padding: '2px 7px',
-                    letterSpacing: 0.7,
-                    verticalAlign: 'middle',
+                    boxShadow: '0 2px 8px 0 rgba(100,181,246,0.10)',
+                    transition: 'box-shadow 0.15s, background 0.15s',
+                    cursor: 'pointer',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.boxShadow = '0 4px 16px 2px #9575cd33';
+                    e.currentTarget.style.background = 'linear-gradient(90deg, #9575cd 0%, #64b5f6 100%)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.boxShadow = '0 2px 8px 0 rgba(100,181,246,0.10)';
+                    e.currentTarget.style.background = 'linear-gradient(90deg, #64b5f6 0%, #9575cd 100%)';
+                  }}
+                >
+                  <span style={{ fontWeight: 900, fontSize: 11, letterSpacing: 0.3, textShadow: '0 1px 2px #0002' }}>🌐 Regional Holiday</span>
+                  <span style={{ fontWeight: 700, fontSize: 11 }}>{cell.holiday.occasion}</span>
+                  <span style={{ fontWeight: 400, fontSize: 10, opacity: 0.92 }}>{Array.isArray(cell.holiday.locations) ? cell.holiday.locations.join(', ') : cell.holiday.locations}</span>
+                </div>
+              )
+            }
+            {/* National Holiday (smaller, left-aligned) */}
+            {
+              cell.isNational && cell.holiday && (
+                <span
+                  style={{
                     display: 'inline-block',
-                  }}>
-                    Revoked
-                  </span>
-                )}
-              </span>
-            ))}
-          </div>
+                    fontWeight: 800,
+                    color: '#fff',
+                    background: 'linear-gradient(90deg, #ffb347 0%, #ffcc33 100%)',
+                    borderRadius: 14,
+                    fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif',
+                    fontSize: 11,
+                    lineHeight: 1.3,
+                    marginBottom: 2,
+                    padding: '3px 10px',
+                    boxShadow: '0 2px 8px 0 rgba(255,193,7,0.11)',
+                    letterSpacing: 0.2,
+                    textShadow: '0 1px 2px #0001',
+                    transition: 'box-shadow 0.15s, background 0.15s',
+                    cursor: 'pointer',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.boxShadow = '0 4px 16px 2px #ffb34755';
+                    e.currentTarget.style.background = 'linear-gradient(90deg, #ffcc33 0%, #ffb347 100%)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.boxShadow = '0 2px 8px 0 rgba(255,193,7,0.11)';
+                    e.currentTarget.style.background = 'linear-gradient(90deg, #ffb347 0%, #ffcc33 100%)';
+                  }}
+                >
+                  🏵 National Holiday<br /><span style={{ fontWeight: 700 }}>{cell.holiday.occasion}</span>
+                </span>
+              )
+            }
+            {/* Leave entries (appear below holiday info, with spacing) */}
+            {
+              cell.dayLeaves.map((leave, idx) => (
+                <span
+                  key={idx}
+                  style={{
+                    marginTop: 5,
+                    marginBottom: 2,
+                    background:
+                      leave.status === 'Revoked'
+                        ? 'linear-gradient(90deg, #e0e0e0 0%, #bdbdbd 100%)'
+                        : leave.type === 'HalfDay'
+                          ? '#bfcf87'
+                          : leave.type === 'Planned'
+                            ? 'linear-gradient(90deg, #43e97b 0%, #38f9d7 100%)'
+                            : leave.type === 'Emergency'
+                              ? 'linear-gradient(90deg, #ff5858 0%, #f09819 100%)'
+                              : 'linear-gradient(90deg, #f7971e 0%, #ffd200 100%)',
+                    color: leave.status === 'Revoked' ? '#888' : leave.type === 'Emergency' ? '#fff' : '#222',
+                    borderRadius: 16,
+                    padding: '3px 12px',
+                    fontSize: 13,
+                    fontWeight: 700,
+                    fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif',
+                    display: 'inline-block',
+                    boxSizing: 'border-box',
+                    wordBreak: 'break-word',
+                    whiteSpace: 'normal',
+                    cursor: leave.status === 'Revoked' ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 2px 10px 0 rgba(60,60,60,0.10)',
+                    letterSpacing: 0.2,
+                    transition: 'box-shadow 0.18s, transform 0.18s',
+                    opacity: leave.status === 'Revoked' ? 0.6 : 1,
+                    textDecoration: leave.status === 'Revoked' ? 'line-through' : 'none',
+                    position: 'relative',
+                  }}
+                  title={leave.status === 'Revoked' ? `Revoked by: ${leave.revokedBy || 'N/A'} \nRevoked at: ${leave.revokedAt ? new Date(leave.revokedAt).toLocaleString() : 'N/A'} \nReason: ${leave.revocationReason || 'N/A'} ` : ''}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.boxShadow = '0 4px 16px 2px rgba(124,77,255,0.13)';
+                    e.currentTarget.style.transform = 'scale(1.06)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.boxShadow = '0 2px 10px 0 rgba(60,60,60,0.10)';
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}
+                  onClick={e => {
+                    if (leave.status === 'Revoked') return;
+                    e.stopPropagation();
+                    if (typeof onLeaveClick === 'function') {
+                      onLeaveClick(cell.key, leave);
+                    }
+                  }}
+                >
+                  {leave.employee} - {leave.type}
+                  {leave.status === 'Revoked' && (
+                    <span style={{
+                      background: '#d32f2f',
+                      color: '#fff',
+                      borderRadius: 8,
+                      fontSize: 10,
+                      fontWeight: 900,
+                      marginLeft: 8,
+                      padding: '2px 7px',
+                      letterSpacing: 0.7,
+                      verticalAlign: 'middle',
+                      display: 'inline-block',
+                    }}>
+                      Revoked
+                    </span>
+                  )}
+                </span>
+              ))
+            }
+          </div >
         ) : (
           <div key={cell.key} style={{ background: 'transparent', border: 'none', width: '100%', height: '100%', aspectRatio: '1/1', minHeight: 0, minWidth: 0, boxSizing: 'border-box', pointerEvents: 'none' }} />
         )
@@ -352,22 +389,67 @@ function Calendar({
 
         {/* ADMIN TRIGGER BUTTON (Lead Only) */}
         {user && user.role === 'Lead' && (
-          <Box sx={{ position: 'absolute', right: 20, opacity: 0.8 }} title="Admin: Trigger Wrapped for ALL Users">
-            <IconButton onClick={async () => {
-              if (window.confirm("GLOBAL TRIGGER: This will popup the 'Wrapped' letter for EVERY user on their next refresh. Are you sure?")) {
-                try {
-                  await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:4000/api'}/config/trigger-wrapped`, { method: 'POST' });
-                  alert("Trigger sent! Users will see the popup on next reload.");
-                } catch (e) {
-                  alert("Failed to send trigger.");
+          <Box sx={{ position: 'absolute', right: 0, opacity: 0.9 }} title="Admin: Trigger Wrapped for ALL Users">
+            <Button
+              variant="contained"
+              startIcon={<SendIcon />}
+              onClick={handleConfirmOpen}
+              sx={{
+                background: 'linear-gradient(45deg, #673ab7 30%, #9c27b0 90%)',
+                border: 0,
+                borderRadius: 3,
+                boxShadow: '0 3px 5px 2px rgba(156, 39, 176, .3)',
+                color: 'white',
+                height: 48,
+                padding: '0 25px',
+                fontWeight: 700,
+                textTransform: 'none',
+                fontSize: '1rem',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-2px) scale(1.02)',
+                  boxShadow: '0 6px 15px 4px rgba(156, 39, 176, .4)',
+                  background: 'linear-gradient(45deg, #512DA8 30%, #7B1FA2 90%)',
                 }
-              }
-            }} size="small" sx={{ bgcolor: '#ffebee', '&:hover': { bgcolor: '#ffcdd2' } }}>
-              🔄
-            </IconButton>
+              }}>
+              Send Letter
+            </Button>
           </Box>
         )}
       </div>
+
+      {/* CONFIRMATION DIALOG */}
+      <Dialog
+        open={confirmOpen}
+        onClose={handleConfirmClose}
+        PaperProps={{
+          style: { borderRadius: 16, padding: 10 }
+        }}
+      >
+        <DialogTitle sx={{ color: '#673ab7', fontWeight: 700 }}>
+          Confirm Global Trigger?
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to send the <b>"Leave Wrapped"</b> letter to <b>ALL</b> users?
+            <br /><br />
+            This will make the popup appear on their screen the next time they refresh the page.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleConfirmClose} sx={{ color: '#757575' }}>Cancel</Button>
+          <Button onClick={handleSendTrigger} variant="contained" color="secondary" autoFocus sx={{ borderRadius: 2, background: 'linear-gradient(45deg, #673ab7 30%, #9c27b0 90%)' }}>
+            Yes, Send Letters
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* SUCCESS/ERROR SNACKBAR */}
+      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleSnackbarClose} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+        <Alert onClose={handleSnackbarClose} severity={snackbar.severity} sx={{ width: '100%', fontWeight: 600 }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
 
       {/* WRAPPED MAIN COMPONENT */}
       <LeaveWrapped open={wrappedOpen} onClose={() => setWrappedOpen(false)} />

@@ -76,20 +76,12 @@ app.get('/api/leaves', async (req, res) => {
 });
 
 // --- Serve React frontend for all non-API routes ---
-app.get('*', (req, res) => {
-  if (!req.url.startsWith('/api')) {
-    res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
-  }
-});
+
 
 // --- MongoDB Atlas Connection ---
 
 // Serve React frontend for all non-API routes
-app.get('*', (req, res) => {
-  if (!req.url.startsWith('/api')) {
-    res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
-  }
-});
+
 const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://Admin:Admin@cluster0.ge3ezsi.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 
 // Set buffer timeout to 5s to prevent operations from hanging indefinitely if DB is down
@@ -139,6 +131,7 @@ const bcrypt = require('bcryptjs');
 app.get('/api/config/wrapped-trigger', async (req, res) => {
   try {
     const config = await Config.findOne({ key: 'wrappedTriggerAt' });
+    console.log("Serving wrapped config:", config);
     res.json({ value: config ? config.value : null });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -153,6 +146,7 @@ app.post('/api/config/trigger-wrapped', async (req, res) => {
       { value: now },
       { upsert: true, new: true }
     );
+    console.log("Updated wrapped config:", config);
     res.json(config);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -354,6 +348,14 @@ app.put('/api/leaves/:id/revoke', async (req, res) => {
     res.json({ success: true, leave });
   } catch (err) {
     res.status(400).json({ error: err.message });
+  }
+});
+
+// --- Serve React frontend for all non-API routes (Catch-All) ---
+// Must be last!
+app.get('*', (req, res) => {
+  if (!req.url.startsWith('/api')) {
+    res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
   }
 });
 
