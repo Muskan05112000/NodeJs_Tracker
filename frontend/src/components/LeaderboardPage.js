@@ -81,7 +81,7 @@ const LeaderboardPage = () => {
         // Seasonal
         { id: 'summer', icon: '☀️', name: 'Summer Lover', desc: '3+ leaves in Jun/Jul/Aug.' },
         { id: 'winter', icon: '❄️', name: 'Winter Hibernator', desc: '3+ leaves in Dec/Jan/Feb.' },
-        { id: 'spooky', icon: '🎃', name: 'Spooky Season', desc: 'Leave on Oct 31st.' },
+        { id: 'diwali', icon: '🪔', name: 'Festival of Lights', desc: 'Leave during Diwali month.' },
         { id: 'festive', icon: '🎄', name: 'Holiday Spirit', desc: 'Leave in last week of Dec.' },
 
         // Types & Hygiene
@@ -133,7 +133,9 @@ const LeaderboardPage = () => {
         const winterCount = leaveDates.filter(d => [11, 0, 1].includes(d.getMonth())).length;
         if (winterCount >= 3) earned.push(BADGES.find(b => b.id === 'winter'));
 
-        if (leaveDates.some(d => d.getMonth() === 9 && d.getDate() === 31)) earned.push(BADGES.find(b => b.id === 'spooky'));
+        // Diwali Check (Oct/Nov generic coverage)
+        if (leaveDates.some(d => d.getMonth() === 9 || d.getMonth() === 10)) earned.push(BADGES.find(b => b.id === 'diwali'));
+
         if (leaveDates.some(d => d.getMonth() === 11 && d.getDate() >= 25)) earned.push(BADGES.find(b => b.id === 'festive'));
 
         // --- CONSECUTIVE & SANDWICH ---
@@ -282,51 +284,54 @@ const LeaderboardPage = () => {
                         <Typography variant="h5" fontWeight={800} sx={{ mb: 3, textAlign: 'center', color: '#2c3e50' }}>
                             Your Trophy Cabinet ({myBadges.length}/{BADGES.length})
                         </Typography>
-                        <Grid container spacing={2}>
+                        {/* CSS GRID FOR 5 COLUMNS */}
+                        <Box sx={{
+                            display: 'grid',
+                            gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)', md: 'repeat(4, 1fr)', lg: 'repeat(5, 1fr)' },
+                            gap: 2
+                        }}>
                             {BADGES.map((badge, index) => {
                                 const isUnlocked = myBadges.find(b => b.id === badge.id);
 
                                 return (
-                                    <Grid item xs={6} sm={4} md={3} lg={2.4} key={badge.id}>
-                                        <Box sx={{
-                                            p: 2,
-                                            height: '100%',
-                                            borderRadius: 4,
-                                            bgcolor: isUnlocked ? 'rgba(255, 255, 255, 0.85)' : 'rgba(255, 255, 255, 0.4)',
-                                            border: isUnlocked ? '2px solid #FFD700' : '1px solid rgba(0,0,0,0.05)',
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            alignItems: 'center',
-                                            textAlign: 'center',
-                                            gap: 1,
-                                            opacity: isUnlocked ? 1 : 0.7,
-                                            filter: isUnlocked ? 'none' : 'grayscale(100%)',
-                                            transform: isUnlocked ? 'scale(1.02)' : 'none',
-                                            transition: 'all 0.3s ease',
-                                            boxShadow: isUnlocked ? '0 8px 20px rgba(255, 215, 0, 0.25)' : 'none',
-                                            animation: `fadeInUp 0.5s ease backwards ${index * 0.05}s`
-                                        }}>
-                                            <Box sx={{ fontSize: '2.5rem', mb: 1 }}>{badge.icon}</Box>
-                                            <Typography variant="body1" fontWeight={800} color={isUnlocked ? '#2c3e50' : '#78909c'} sx={{ lineHeight: 1.2 }}>
-                                                {badge.name}
-                                            </Typography>
-                                            <Typography variant="caption" color={isUnlocked ? '#455a64' : '#90a4ae'} fontWeight={500} sx={{ flex: 1 }}>
-                                                {badge.desc}
-                                            </Typography>
-                                            {isUnlocked ? (
-                                                <Box sx={{ mt: 'auto', py: 0.5, px: 2, borderRadius: 10, bgcolor: '#e8f5e9', color: '#2e7d32', fontWeight: 800, fontSize: '0.7rem' }}>
-                                                    UNLOCKED
-                                                </Box>
-                                            ) : (
-                                                <Box sx={{ mt: 'auto', py: 0.5, px: 2, borderRadius: 10, bgcolor: '#eceff1', color: '#b0bec5', fontWeight: 700, fontSize: '0.7rem' }}>
-                                                    LOCKED
-                                                </Box>
-                                            )}
-                                        </Box>
-                                    </Grid>
+                                    <Box key={badge.id} sx={{
+                                        p: 2,
+                                        height: '100%',
+                                        borderRadius: 4,
+                                        bgcolor: isUnlocked ? 'rgba(255, 255, 255, 0.85)' : 'rgba(255, 255, 255, 0.4)',
+                                        border: isUnlocked ? '2px solid #FFD700' : '1px solid rgba(0,0,0,0.05)',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        textAlign: 'center',
+                                        gap: 1,
+                                        opacity: isUnlocked ? 1 : 0.7,
+                                        filter: isUnlocked ? 'none' : 'grayscale(100%)',
+                                        transform: isUnlocked ? 'scale(1.02)' : 'none',
+                                        transition: 'all 0.3s ease',
+                                        boxShadow: isUnlocked ? '0 8px 20px rgba(255, 215, 0, 0.25)' : 'none',
+                                        animation: `fadeInUp 0.5s ease backwards ${index * 0.05}s`
+                                    }}>
+                                        <Box sx={{ fontSize: '2.5rem', mb: 1 }}>{badge.icon}</Box>
+                                        <Typography variant="body1" fontWeight={800} color={isUnlocked ? '#2c3e50' : '#78909c'} sx={{ lineHeight: 1.2 }}>
+                                            {badge.name}
+                                        </Typography>
+                                        <Typography variant="caption" color={isUnlocked ? '#455a64' : '#90a4ae'} fontWeight={500} sx={{ flex: 1 }}>
+                                            {badge.desc}
+                                        </Typography>
+                                        {isUnlocked ? (
+                                            <Box sx={{ mt: 'auto', py: 0.5, px: 2, borderRadius: 10, bgcolor: '#e8f5e9', color: '#2e7d32', fontWeight: 800, fontSize: '0.7rem' }}>
+                                                UNLOCKED
+                                            </Box>
+                                        ) : (
+                                            <Box sx={{ mt: 'auto', py: 0.5, px: 2, borderRadius: 10, bgcolor: '#eceff1', color: '#b0bec5', fontWeight: 700, fontSize: '0.7rem' }}>
+                                                LOCKED
+                                            </Box>
+                                        )}
+                                    </Box>
                                 );
                             })}
-                        </Grid>
+                        </Box>
                     </Box>
                 ) : (
                     /* LEADERBOARD LIST (Monthly/Yearly) */
