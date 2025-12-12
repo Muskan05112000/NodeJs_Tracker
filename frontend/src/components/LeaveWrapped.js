@@ -35,7 +35,34 @@ const SecretReveal = ({ children }) => {
                     zIndex: 10
                 }}>
                     <Typography variant="h1" sx={{ fontSize: '4rem', opacity: 0.7 }}>🔍</Typography>
-                    <Typography variant="caption" sx={{ color: '#fff', bgcolor: 'rgba(0,0,0,0.5)', px: 1, borderRadius: 1 }}>TAP TO DECLASSIFY</Typography>
+                    <Box sx={{
+                        marginTop: 1,
+                        background: 'linear-gradient(90deg, rgba(0,0,0,0.6) 0%, rgba(50,50,50,0.4) 100%)',
+                        backdropFilter: 'blur(4px)',
+                        padding: '6px 20px',
+                        borderRadius: '6px', // Rectangular
+                        border: '1px solid rgba(255,255,255,0.15)',
+                        animation: 'pulse 2s infinite ease-in-out',
+                        display: 'inline-block',
+                        minWidth: 'max-content' // Ensure it fits text
+                    }}>
+                        <Typography variant="caption" sx={{
+                            color: '#fff',
+                            fontWeight: 700,
+                            letterSpacing: 2,
+                            fontSize: '0.7rem',
+                            textTransform: 'uppercase',
+                            whiteSpace: 'nowrap' // Force single line
+                        }}>
+                            Hover to Reveal
+                        </Typography>
+                    </Box>
+                    <style>{`
+                        @keyframes pulse {
+                            from { opacity: 0.7; transform: scale(1); }
+                            to { opacity: 1; transform: scale(1.05); }
+                        }
+                    `}</style>
                 </Box>
             )}
         </Box>
@@ -112,12 +139,13 @@ const ScratchCard = ({ children, width = 600, height = 300, coverText = "SCRATCH
                 ref={canvasRef}
                 width={width}
                 height={height}
-                onMouseDown={() => setIsScratching(true)}
-                onMouseUp={() => setIsScratching(false)}
-                onMouseMove={(e) => { if (isScratching || e.buttons === 1) scratch(e); }}
-                onTouchStart={() => setIsScratching(true)}
-                onTouchEnd={() => setIsScratching(false)}
-                onTouchMove={(e) => { if (isScratching) scratch(e); }}
+                onMouseDown={(e) => { e.stopPropagation(); setIsScratching(true); }}
+                onMouseUp={(e) => { e.stopPropagation(); setIsScratching(false); }}
+                onMouseMove={(e) => { e.stopPropagation(); if (isScratching || e.buttons === 1) scratch(e); }}
+                onTouchStart={(e) => { e.stopPropagation(); setIsScratching(true); }}
+                onTouchEnd={(e) => { e.stopPropagation(); setIsScratching(false); }}
+                onTouchMove={(e) => { e.stopPropagation(); if (isScratching) scratch(e); }}
+                onClick={(e) => e.stopPropagation()}
                 style={{
                     position: 'absolute',
                     top: 0,
