@@ -501,7 +501,7 @@ const LeaveWrapped = ({ open, onClose }) => {
                 // 1. Time Traveler (Next Year Logic)
                 if (isTimeTraveler) {
                     baseTitle = "The Time Traveler ⏳";
-                    baseReason = `You're living in the future! Most leaves booked for next Jan (${myNextJanLeaves} days).`;
+                    baseReason = `You're living in the future 2026! Most leaves booked for next Jan (${myNextJanLeaves} days).`;
                 }
                 // 2. The Ghost (Very Low Usage)
                 else if (totalDays <= 3) {
@@ -521,7 +521,7 @@ const LeaveWrapped = ({ open, onClose }) => {
                 // 4. Fortune Teller (100% Planned)
                 else if (percentPlanned === 100) {
                     baseTitle = "The Fortune Teller 🔮";
-                    baseReason = "You knew you'd need a break months ago. 0% Surprise, 100% Execution.";
+                    baseReason = "You knew you'd need a break months ago. 0% Surprise, 100% Execution, Planned Escapes everytime!!";
                 }
                 // 5. December Dasher (December specific)
                 else if (decCount / totalDays >= 0.5) {
@@ -545,7 +545,7 @@ const LeaveWrapped = ({ open, onClose }) => {
                 }
                 else if (!isLateStart && q4Count / totalDays >= 0.6) {
                     baseTitle = "The Late Bloomer 🌒";
-                    baseReason = "You waited until the very end of the year to vanish.";
+                    baseReason = "You waited until the very end of the year quarter to vanish.";
                 }
 
                 // --- LATE START SPECIFIC TITLES ---
