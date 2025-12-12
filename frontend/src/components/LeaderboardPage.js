@@ -1,5 +1,5 @@
 import React, { useContext, useMemo, useState } from 'react';
-import { Box, Typography, Avatar, Container, Grid, Paper, Tabs, Tab } from '@mui/material';
+import { Box, Typography, Avatar, Container, Grid, Paper, Tabs, Tab, Tooltip } from '@mui/material';
 import { AppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { format } from 'date-fns';
@@ -391,12 +391,43 @@ const LeaderboardPage = () => {
                                                 </Typography>
 
                                                 {/* Badges Row */}
-                                                <Box sx={{ display: 'flex', gap: 0.5 }}>
-                                                    {userBadges.map((badge, i) => (
-                                                        <div key={i} title={`${badge.name}: ${badge.desc}`} style={{ cursor: 'help', fontSize: '1.2rem' }}>
-                                                            {badge.icon}
-                                                        </div>
+                                                <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
+                                                    {userBadges.slice(0, 4).map((badge, i) => (
+                                                        <Tooltip key={i} title={`${badge.name}: ${badge.desc}`} arrow>
+                                                            <div style={{ cursor: 'help', fontSize: '1.2rem' }}>
+                                                                {badge.icon}
+                                                            </div>
+                                                        </Tooltip>
                                                     ))}
+                                                    {userBadges.length > 4 && (
+                                                        <Tooltip
+                                                            arrow
+                                                            title={
+                                                                <Box sx={{ textAlign: 'center' }}>
+                                                                    {userBadges.slice(4).map((b, i) => (
+                                                                        <Typography key={i} variant="caption" display="block" sx={{ fontSize: '0.75rem' }}>
+                                                                            {b.icon} {b.name}
+                                                                        </Typography>
+                                                                    ))}
+                                                                </Box>
+                                                            }
+                                                        >
+                                                            <Box sx={{
+                                                                bgcolor: 'rgba(0,0,0,0.05)',
+                                                                borderRadius: 10,
+                                                                px: 0.8,
+                                                                py: 0.2,
+                                                                fontSize: '0.75rem',
+                                                                fontWeight: 700,
+                                                                color: '#546e7a',
+                                                                cursor: 'pointer',
+                                                                border: '1px solid rgba(0,0,0,0.1)',
+                                                                '&:hover': { bgcolor: 'rgba(0,0,0,0.1)' }
+                                                            }}>
+                                                                +{userBadges.length - 4}
+                                                            </Box>
+                                                        </Tooltip>
+                                                    )}
                                                 </Box>
                                             </Box>
 
