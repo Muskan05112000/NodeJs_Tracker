@@ -323,7 +323,7 @@ const LeaveWrapped = ({ open, onClose }) => {
     useEffect(() => {
         if (open && user && activeLeaves && employees) {
             // Client-side calculation (Single Source of Truth)
-            const userName = user.username || user.name;
+            const userName = user.name || user.username;
             // const currentYear = new Date().getFullYear(); // Moved to component scope
 
             if (!userName) {
@@ -567,7 +567,7 @@ const LeaveWrapped = ({ open, onClose }) => {
                     baseReason = "You prefer your freedom in small, controlled tactical bursts. Never gone for long.";
                 }
                 // 15. The Chameleon (All days used)
-                else if (uniqueWeekdays === 5 && totalDays > 10) {
+                else if (uniqueWeekdays >= 5 && totalDays > 10) {
                     baseTitle = "The Chameleon 🦎";
                     baseReason = "Monday, Tuesday, Friday... you don't discriminate. You take them all.";
                 }
