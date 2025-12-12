@@ -516,7 +516,7 @@ const LeaveWrapped = ({ open, onClose }) => {
                     maxMonthCount, maxMonthName,
                     utilization: (total / entitlement) * 100
                 };
-            });
+            }).sort((a, b) => a.name.localeCompare(b.name)); // Deterministic Order
 
 
             // 2. Define Personas & Criteria (Priority Order)
@@ -545,17 +545,20 @@ const LeaveWrapped = ({ open, onClose }) => {
                 {
                     title: "The Monday Evader ☕",
                     description: "Monday Blues? You've never heard of them.",
-                    criteria: (s) => s.mon / (s.total || 1) // Highest % of Mondays
+                    criteria: (s) => s.total > 2 ? (s.mon * s.mon) / s.total : 0 // Weighted Ratio
                 },
                 {
                     title: "The Friday Escape Artist 🏃",
                     description: "Your weekend starts on Thursday at 5:00 PM sharp.",
-                    criteria: (s) => s.fri / (s.total || 1)
+                    criteria: (s) => s.total > 2 ? (s.fri * s.fri) / s.total : 0
                 },
                 {
                     title: "The Long Weekender 🏖️",
                     description: "3-day weekends are your religion.",
-                    criteria: (s) => (s.mon + s.fri) / (s.total || 1)
+                    criteria: (s) => {
+                        const count = s.mon + s.fri;
+                        return s.total > 2 ? (count * count) / s.total : 0;
+                    }
                 },
                 {
                     title: "The Marathon Runner 🏃‍♂️",
@@ -570,22 +573,22 @@ const LeaveWrapped = ({ open, onClose }) => {
                 {
                     title: "The Fortune Teller 🔮",
                     description: "You planned this headache 6 months ago.",
-                    criteria: (s) => s.planned / (s.total || 1)
+                    criteria: (s) => s.total > 2 ? (s.planned * s.planned) / s.total : 0
                 },
                 {
                     title: "The Last Minute Legend ⚡",
                     description: "Plans? Where we're going, we don't need plans.",
-                    criteria: (s) => s.casual / (s.total || 1)
+                    criteria: (s) => s.total > 2 ? (s.casual * s.casual) / s.total : 0
                 },
                 {
                     title: "The Hump Day Hero 🐫",
                     description: "Breaking up the week like a pro. Who needs momentum?",
-                    criteria: (s) => s.tueWedThu / (s.total || 1)
+                    criteria: (s) => s.total > 2 ? (s.tueWedThu * s.tueWedThu) / s.total : 0
                 },
                 {
                     title: "The Seasonal Migrator 🍂",
                     description: "You basically hibernate in one specific month.",
-                    criteria: (s) => s.maxMonthCount / (s.total || 1)
+                    criteria: (s) => s.total > 2 ? (s.maxMonthCount * s.maxMonthCount) / s.total : 0
                 },
                 {
                     title: "The Bank Hoarder 💰",
@@ -595,12 +598,27 @@ const LeaveWrapped = ({ open, onClose }) => {
                 {
                     title: "The Calculated Risk 🧮",
                     description: "Maximizing holiday overlap with mathematical precision.",
-                    criteria: (s) => Math.random() * 10 // Placeholder for complex logic, random tie-breaker
+                    criteria: (s) => (s.name.charCodeAt(0) % 10) // Consistent Hash Trend
                 },
                 {
                     title: "The Average Joe ☕",
                     description: "Remarkably statistically average. You are the control group.",
-                    criteria: (s) => s.total > 10 && s.total < 25 ? 50 : 0
+                    criteria: (s) => s.total >= 5 && s.total <= 20 ? 50 : 0
+                },
+                {
+                    title: "The Deep Sleeper 🛌",
+                    description: "Silent, steady, and completely under the radar.",
+                    criteria: (s) => s.total > 0 && s.total < 5 ? 20 : 0
+                },
+                {
+                    title: "The Mystery 🕵️‍♂️",
+                    description: "We have data on you, but it refuses to fit a pattern.",
+                    criteria: (s) => (s.name.length % 2 === 0) ? 10 : 0 // Arbitrary split
+                },
+                {
+                    title: "The NPC 🤖",
+                    description: "Just doing your job, living your life. Respect.",
+                    criteria: (s) => (s.name.length % 2 !== 0) ? 10 : 0 // Arbitrary split
                 },
                 {
                     title: "The Wildcard 🃏",
