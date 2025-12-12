@@ -464,86 +464,148 @@ const LeaveWrapped = ({ open, onClose }) => {
 
             const isTimeTraveler = myNextJanLeaves > 0 && myNextJanLeaves === maxNextJanLeaves;
 
-            // --- UNIQUE PERSONA GENERATOR ---
-            // Helper to generate a deterministic hash from string
-            const stringToHash = (str) => {
-                let hash = 0;
-                for (let i = 0; i < str.length; i++) {
-                    const char = str.charCodeAt(i);
-                    hash = ((hash << 5) - hash) + char;
-                    hash |= 0; // Convert to 32bit integer
-                }
-                return Math.abs(hash);
-            };
-
-            const userHash = stringToHash(userName);
-
-            // Adjectives List (50+)
-            const ADJECTIVES = [
-                "Secretive", "Bold", "Calculated", "Mysterious", "Phantom", "Rogue", "Elite", "Shadowy",
-                "Tactical", "Strategic", "Silent", "Rapid", "Stealthy", "Great", "Legendary", "Fabled",
-                "Mythic", "Covert", "Undercover", "Diplomatic", "Chaotic", "Serene", "Zen", "Hyper",
-                "Lazy", "Efficient", "Precise", "Unpredictable", "Ghostly", "Ethereal", "Cosmic", "Noble",
-                "Savage", "Reckless", "Careful", "Diligent", "Masterful", "Supreme", "Ultimate", "Prime",
-                "Omega", "Alpha", "Beta", "Sigma", "Director", "Chief", "Executive", "Senior", "Junior"
-            ];
-
-            const uniqueAdjective = ADJECTIVES[userHash % ADJECTIVES.length];
-            const agentID = (userHash % 900) + 100; // Agent 100-999
-            const agentCode = `Agent ${uniqueAdjective} ${agentID}`;
-
+            // --- UNIQUE PERSONA GENERATOR (20+ Static Titles) ---
             if (totalDays > 0) {
-                let baseTitle = "";
-                let baseReason = "";
+                let baseTitle = "The Shadow Operative 🕶️";
+                let baseReason = "No distinct pattern found. You kept your movements completely unpredictable.";
 
+                // --- PRE-CALCULATE STATS ---
+                const byDay = {};
+                const byMonth = {};
+                userLeaves.forEach(l => {
+                    const d = new Date(l.date);
+                    const dayName = d.toLocaleDateString('en-US', { weekday: 'long' });
+                    const monthIdx = d.getMonth();
+                    byDay[dayName] = (byDay[dayName] || 0) + 1;
+                    byMonth[monthIdx] = (byMonth[monthIdx] || 0) + 1;
+                });
+
+                const mondayCount = byDay['Monday'] || 0;
+                const fridayCount = byDay['Friday'] || 0;
+                const wednesdayCount = byDay['Wednesday'] || 0;
+                const tueThuCount = (byDay['Tuesday'] || 0) + (byDay['Thursday'] || 0);
+
+                // Quarter Stats
+                const q1Count = (byMonth[0] || 0) + (byMonth[1] || 0) + (byMonth[2] || 0); // Jan-Mar
+                const q4Count = (byMonth[9] || 0) + (byMonth[10] || 0) + (byMonth[11] || 0); // Oct-Dec
+                const summerCount = (byMonth[5] || 0) + (byMonth[6] || 0) + (byMonth[7] || 0); // Jun-Aug
+                const decCount = byMonth[11] || 0;
+
+                // Unique Day Count (How many different weekdays they took off)
+                const uniqueWeekdays = Object.keys(byDay).length;
+
+                // --- RULE EVALUATION (Specific -> General) ---
+
+                // 1. Time Traveler (Next Year Logic)
                 if (isTimeTraveler) {
-                    baseTitle = "Time Traveler ⏳";
-                    baseReason = `You're living in ${nextYear}! Most leaves booked for next Jan (${myNextJanLeaves} days).`;
-                } else if (percentPlanned === 100) {
-                    baseTitle = "Fortune Teller 🔮";
-                    baseReason = "You knew you'd need a break 6 months ago.";
-                } else if (percentPlanned >= 80) {
-                    baseTitle = "CEO of Calendars 📅";
-                    baseReason = "Your schedule is tighter than a drum.";
-                } else if (percentPlanned >= 60) {
-                    baseTitle = "Tactical Planner 🎯";
+                    baseTitle = "The Time Traveler ⏳";
+                    baseReason = `You're living in the future! Most leaves booked for next Jan (${myNextJanLeaves} days).`;
+                }
+                // 2. The Ghost (Very Low Usage)
+                else if (totalDays <= 3) {
+                    baseTitle = "The Ghost 👻";
+                    baseReason = "You were barely here... or maybe you were never here at all.";
+                }
+                // 3. The Marathon Runner (High Usage)
+                else if (totalDays >= 25) {
+                    baseTitle = "The Marathon Runner 🏃";
+                    baseReason = "You used almost every single day available. Maximum efficiency.";
+                }
+                // 4. Fortune Teller (100% Planned)
+                else if (percentPlanned === 100) {
+                    baseTitle = "The Fortune Teller 🔮";
+                    baseReason = "You knew you'd need a break months ago. 0% Surprise, 100% Execution.";
+                }
+                // 5. December Dasher (December specific)
+                else if (decCount / totalDays >= 0.5) {
+                    baseTitle = "The December Dasher 🦌";
+                    baseReason = "You saved all your ammunition for the grand finale. See you next year!";
+                }
+                // 6. Deep Sleeper (Long Streak)
+                else if (longestStreak > 10) {
+                    baseTitle = "The Deep Sleeper 🛌";
+                    baseReason = `You went into deep cover for ${longestStreak} days. We almost authorized a search party.`;
+                }
+                // 7. Summer Soul (Mid-Year)
+                else if (summerCount / totalDays >= 0.5) {
+                    baseTitle = "The Summer Soul ☀️";
+                    baseReason = "You followed the sun. Most of your leaves were in June, July, or August.";
+                }
+                // 8. Early Riser (Q1)
+                else if (q1Count / totalDays >= 0.5) {
+                    baseTitle = "The Early Riser 🌅";
+                    baseReason = "You started the year resting while everyone else was just waking up.";
+                }
+                // 9. Late Bloomer (Q4 non-December specific)
+                else if (q4Count / totalDays >= 0.6) {
+                    baseTitle = "The Late Bloomer 🌒";
+                    baseReason = "You waited until the very end of the year to vanish.";
+                }
+                // 10. Monday Assassin
+                else if ((mondayCount / totalDays) >= 0.45) {
+                    baseTitle = "The Monday Assassin 🗡️";
+                    baseReason = "You have systematically eliminated Mondays from your calendar.";
+                }
+                // 11. Friday Escapist
+                else if ((fridayCount / totalDays) >= 0.45) {
+                    baseTitle = "The Friday Escapist 🚀";
+                    baseReason = "By Thursday noon, you're already mentally checked out.";
+                }
+                // 12. Hump Day Hacker
+                else if ((wednesdayCount / totalDays) >= 0.4) {
+                    baseTitle = "The Hump Day Hacker 🐫";
+                    baseReason = "Splitting the week in half to maintain optimal sanity levels. Genius.";
+                }
+                // 13. Bridge Architect (Tue/Thu)
+                else if ((tueThuCount / totalDays) >= 0.4) {
+                    baseTitle = "The Bridge Architect 🌉";
+                    baseReason = "Expert at turning 1 holiday into 4 days off. Engineering genius.";
+                }
+                // 14. Micro-Doser (Short frequent leaves)
+                else if (longestStreak <= 1 && totalDays > 8) {
+                    baseTitle = "The Micro-Doser 🧪";
+                    baseReason = "You prefer your freedom in small, controlled tactical bursts. Never gone for long.";
+                }
+                // 15. The Chameleon (All days used)
+                else if (uniqueWeekdays === 5 && totalDays > 10) {
+                    baseTitle = "The Chameleon 🦎";
+                    baseReason = "Monday, Tuesday, Friday... you don't discriminate. You take them all.";
+                }
+                // 16. Calendar CEO (High Planning)
+                else if (percentPlanned >= 85) {
+                    baseTitle = "The Calendar CEO 📅";
+                    baseReason = "Your schedule is tighter than a drum. Strategic allocation of resources.";
+                }
+                // 17. Chaos Agent (Low Planning)
+                else if (percentPlanned <= 20 && totalDays > 5) {
+                    baseTitle = "The Chaos Agent 🌪️";
+                    baseReason = "Zero plans, pure instinct. You keep HR on their toes.";
+                }
+                // 18. Long Weekender (Mon+Fri)
+                else if ((mondayCount + fridayCount) / totalDays >= 0.6) {
+                    baseTitle = "The Long Weekender 🏖️";
+                    baseReason = "Mondays and Mondays (and Fridays) are just suggestions to you.";
+                }
+                // 19. Tactical Planner (Mid Planning)
+                else if (percentPlanned >= 60) {
+                    baseTitle = "The Tactical Planner 🎯";
                     baseReason = "Balanced, orderly, and suspiciously well-adjusted.";
-                } else if (percentPlanned >= 40) {
-                    baseTitle = "Balance Keeper ⚖️";
-                    baseReason = "You keep work and life in perfect harmony.";
-                } else if (percentPlanned > 0) {
-                    baseTitle = "Structured Chaos 🌪️";
-                    baseReason = "You have a plan, even if it changes 5 times.";
-                } else {
-                    // Refined "Low Planning" Titles
-                    const byDay = {};
-                    userLeaves.forEach(l => {
-                        const d = new Date(l.date);
-                        const dayName = d.toLocaleDateString('en-US', { weekday: 'long' });
-                        byDay[dayName] = (byDay[dayName] || 0) + 1;
-                    });
-
-                    const monFriCount = (byDay['Monday'] || 0) + (byDay['Friday'] || 0);
-                    const isWeekendWarrior = monFriCount / totalDays > 0.5;
-
-                    if (isWeekendWarrior) {
-                        baseTitle = "Long Weekender 🏖️";
-                        baseReason = "Mondays and Fridays are just suggestions to you.";
-                    } else {
-                        baseTitle = "Surprise Guest 🎁";
-                        baseReason = "We never know when you're leaving (or coming back).";
-                    }
+                }
+                // 20. Balanced Zen (The Rest)
+                else if (percentPlanned >= 40 && percentPlanned < 60) {
+                    baseTitle = "The Balanced Zen ☯️";
+                    baseReason = "Perfect harmony between planning ahead and seizing the moment.";
+                }
+                // 21. Strategist (Backup)
+                else {
+                    baseTitle = "The Strategist ♟️";
+                    baseReason = "Calculated moves only. You leave when you need to.";
                 }
 
-                // COMPOSE UNIQUE TITLE
-                // Format: "The [Adjective] [BaseTitle]"
-                // Or if it's already long, just append Agent ID. 
-                // Let's go with: "The [Adjective] [BaseTitle]"
                 punctualityData = {
-                    title: `The ${uniqueAdjective} ${baseTitle}`,
-                    reason: `${baseReason} (Codename: ${agentCode})`
+                    title: baseTitle,
+                    reason: baseReason
                 };
-
             }
 
             const message = "Take more leaves!";
