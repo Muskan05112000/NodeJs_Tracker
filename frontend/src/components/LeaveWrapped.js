@@ -54,7 +54,7 @@ const SecretReveal = ({ children }) => {
                             textTransform: 'uppercase',
                             whiteSpace: 'nowrap' // Force single line
                         }}>
-                            Hover to Reveal
+                            HOVER TO DECLASSIFY
                         </Typography>
                     </Box>
                     <style>{`
@@ -167,6 +167,7 @@ const LeaveWrapped = ({ open, onClose }) => {
     const [data, setData] = useState(null);
     const [step, setStep] = useState(0);
     const [showConfetti, setShowConfetti] = useState(false);
+    const currentYear = new Date().getFullYear();
 
     // --- SFX & BACKGROUND MUSIC LOGIC ---
     const [audioContext, setAudioContext] = useState(null);
@@ -306,7 +307,7 @@ const LeaveWrapped = ({ open, onClose }) => {
         if (open && user && activeLeaves && employees) {
             // Client-side calculation (Single Source of Truth)
             const userName = user.username || user.name;
-            const currentYear = new Date().getFullYear(); // or fixed to user selection if needed, but wrapped is usually "This Year"
+            // const currentYear = new Date().getFullYear(); // Moved to component scope
 
             if (!userName) {
                 setData({ error: true, message: "User identifier not found" });
@@ -695,7 +696,7 @@ const LeaveWrapped = ({ open, onClose }) => {
                     <ScratchCard width={600} height={200}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                             <Typography variant="h3" fontWeight={900} color="#fff" sx={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>
-                                Your 2025
+                                Your {currentYear}
                             </Typography>
                             <Typography variant="h4" color="#fff" sx={{ letterSpacing: 2, fontWeight: 300 }}>
                                 LEAVE MISSION REPORT
@@ -934,7 +935,7 @@ const LeaveWrapped = ({ open, onClose }) => {
                                     CLOSED
                                 </Typography>
                                 <Typography variant="overline" sx={{ fontSize: '1.2rem', fontWeight: 700, letterSpacing: 4, display: 'block', mt: 1 }}>
-                                    2025 • CLASSIFIED
+                                    {currentYear} • CLASSIFIED
                                 </Typography>
                             </Box>
 
@@ -947,6 +948,9 @@ const LeaveWrapped = ({ open, onClose }) => {
                             <Box sx={{ animation: 'slideUpFade 0.5s ease-out 0.4s backwards', borderBottom: '1px solid rgba(255,255,255,0.1)', pb: 2 }}>
                                 <Typography variant="overline" color="#00ffcc" display="block" sx={{ letterSpacing: 2, fontSize: '0.8rem' }}>GLOBAL RANK</Typography>
                                 <Typography variant="h3" fontWeight={800} color="#fff">#{data.rank}</Typography>
+                                <Typography variant="overline" sx={{ fontSize: '1.2rem', fontWeight: 700, letterSpacing: 4, display: 'block', mt: 1 }}>
+                                    {currentYear} • CLASSIFIED
+                                </Typography>
                                 <Typography variant="body2" color="#aaa" sx={{ mt: 0.5, letterSpacing: 1, textTransform: 'uppercase' }}>{user?.name || user?.username || "Unknown Agent"}</Typography>
                             </Box>
 
@@ -968,14 +972,14 @@ const LeaveWrapped = ({ open, onClose }) => {
                     </Box> {/* End of Card Wrapper */}
 
                     {/* Authorized Signature Footer */}
-                    <Box sx={{ width: '100%', display: 'flex', justifyContent: 'flex-end', mt: 2, mr: 4 }}>
+                    < Box sx={{ width: '100%', display: 'flex', justifyContent: 'flex-end', mt: 2, mr: 4 }}>
                         <Box sx={{ textAlign: 'center', opacity: 0.7 }}>
                             <Typography variant="caption" display="block" color="#d71212ff" sx={{ letterSpacing: 2 }}>AUTHORIZED BY</Typography>
                             <Typography variant="h5" sx={{ fontFamily: '"Brush Script MT", cursive', color: '#fff', transform: 'rotate(-5deg)' }}>
                                 SN Team
                             </Typography>
                         </Box>
-                    </Box>
+                    </Box >
 
                     <Box sx={{
                         mt: 4,

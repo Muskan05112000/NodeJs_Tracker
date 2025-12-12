@@ -207,8 +207,10 @@ const LeaderboardPage = () => {
     // Helper for Achievements Tab
     const myBadges = useMemo(() => {
         if (!currentUser) return [];
-        return getBadges(currentUser.username, leaves);
-    }, [currentUser, leaves]);
+        // Filter leaves for Current Year Only (Reset on Jan 1)
+        const currentYearLeaves = leaves.filter(l => new Date(l.date).getFullYear() === currentYear);
+        return getBadges(currentUser.username, currentYearLeaves);
+    }, [currentUser, leaves, currentYear]);
 
     // Avatar Color Helper
     const stringToColor = (string) => {
