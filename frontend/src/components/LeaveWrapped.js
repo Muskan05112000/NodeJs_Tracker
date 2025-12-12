@@ -70,7 +70,8 @@ const SecretReveal = ({ children }) => {
 };
 
 // Scratch Card Component for Title
-const ScratchCard = ({ children, width = 600, height = 300, coverText = "SCRATCH TO REVEAL MISSION" }) => {
+// Scratch Card Component for Title
+const ScratchCard = ({ children, width = 600, height = 300, coverText = "SCRATCH TO REVEAL MISSION", onScratchStart, onScratchEnd }) => {
     const canvasRef = React.useRef(null);
     const [isScratching, setIsScratching] = useState(false);
     const [cleared, setCleared] = useState(false);
@@ -121,14 +122,24 @@ const ScratchCard = ({ children, width = 600, height = 300, coverText = "SCRATCH
 
         ctx.globalCompositeOperation = 'destination-out';
         ctx.beginPath();
-        ctx.arc(x, y, 30, 0, Math.PI * 2); // Brush size
+        ctx.arc(x, y, 60, 0, Math.PI * 2); // Brush size
         ctx.fill();
+    };
 
-        // Optional: logic to setCleared(true) if enough is scratched could go here
+    const handleStart = (e) => {
+        e.stopPropagation();
+        setIsScratching(true);
+        if (onScratchStart) onScratchStart();
+    };
+
+    const handleEnd = (e) => {
+        e.stopPropagation();
+        setIsScratching(false);
+        if (onScratchEnd) onScratchEnd();
     };
 
     return (
-        <Box sx={{ position: 'relative', width: width, height: height, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <Box className="interactive" sx={{ position: 'relative', width: width, height: height, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             {/* Content Underneath */}
             <Box sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', zIndex: 1, userSelect: 'none' }}>
                 {children}
@@ -139,11 +150,11 @@ const ScratchCard = ({ children, width = 600, height = 300, coverText = "SCRATCH
                 ref={canvasRef}
                 width={width}
                 height={height}
-                onMouseDown={(e) => { e.stopPropagation(); setIsScratching(true); }}
-                onMouseUp={(e) => { e.stopPropagation(); setIsScratching(false); }}
+                onMouseDown={handleStart}
+                onMouseUp={handleEnd}
                 onMouseMove={(e) => { e.stopPropagation(); if (isScratching || e.buttons === 1) scratch(e); }}
-                onTouchStart={(e) => { e.stopPropagation(); setIsScratching(true); }}
-                onTouchEnd={(e) => { e.stopPropagation(); setIsScratching(false); }}
+                onTouchStart={handleStart}
+                onTouchEnd={handleEnd}
                 onTouchMove={(e) => { e.stopPropagation(); if (isScratching) scratch(e); }}
                 onClick={(e) => e.stopPropagation()}
                 style={{
@@ -168,6 +179,12 @@ const LeaveWrapped = ({ open, onClose }) => {
     const [step, setStep] = useState(0);
     const [showConfetti, setShowConfetti] = useState(false);
     const currentYear = new Date().getFullYear();
+    const lastInteractTime = React.useRef(0);
+
+    const handleScratchEnd = () => {
+        lastInteractTime.current = Date.now();
+    };
+
 
     // --- SFX & BACKGROUND MUSIC LOGIC ---
     const [audioContext, setAudioContext] = useState(null);
@@ -664,6 +681,9 @@ const LeaveWrapped = ({ open, onClose }) => {
         // Ignore clicks on buttons/interactive elements to prevent double triggers
         if (e.target.closest('button') || e.target.closest('.interactive')) return;
 
+        // Prevent navigation if user just finished interacting (e.g. scratching)
+        if (Date.now() - lastInteractTime.current < 500) return;
+
         const screenWidth = window.innerWidth;
         const clickX = e.clientX;
 
@@ -693,7 +713,7 @@ const LeaveWrapped = ({ open, onClose }) => {
                         TOP SECRET 🕵️‍♂️
                     </Typography>
 
-                    <ScratchCard width={600} height={200}>
+                    <ScratchCard width={600} height={200} onScratchEnd={handleScratchEnd}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                             <Typography variant="h3" fontWeight={900} color="#fff" sx={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>
                                 Your {currentYear}
@@ -792,7 +812,7 @@ const LeaveWrapped = ({ open, onClose }) => {
                 <>
                     <Typography variant="h4" color="#fff" sx={{ opacity: 0.9, mb: 6, letterSpacing: 1, fontWeight: 700 }}>Tactical Planning Award</Typography>
 
-                    <ScratchCard width={window.innerWidth * 0.8} height={150} coverText="REVEAL AGENT IDENTITY">
+                    <ScratchCard width={window.innerWidth * 0.8} height={150} coverText="REVEAL AGENT IDENTITY" onScratchEnd={handleScratchEnd}>
                         <Typography variant="h3" fontWeight={800} color="#fff" sx={{ px: 4, lineHeight: 1.4 }}>
                             {data.punctuality.title}
                         </Typography>
