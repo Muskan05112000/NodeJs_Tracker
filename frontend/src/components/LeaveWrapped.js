@@ -448,183 +448,212 @@ const LeaveWrapped = ({ open, onClose }) => {
 
             // --- TIME TRAVELER LOGIC ---
             const nextYear = currentYear + 1;
-            const myNextJanLeaves = activeLeaves.filter(l => {
-                const d = new Date(l.date);
-                return l.employee === userName && d.getFullYear() === nextYear && d.getMonth() === 0;
-            }).length;
 
-            let maxNextJanLeaves = 0;
-            employees.forEach(emp => {
-                const count = activeLeaves.filter(l => {
+            // --- GLOBAL UNIQUE PERSONA GENERATOR ---
+            // --- GLOBAL UNIQUE PERSONA GENERATOR ---
+            // 1. Calculate stats for ALL employees to find "Best Fits"
+            // This ensures NO TWO USERS get the same title.
+
+            const allUserStats = employees.map(emp => {
+                const empLeaves = activeLeaves.filter(l => {
                     const d = new Date(l.date);
-                    return l.employee === emp.name && d.getFullYear() === nextYear && d.getMonth() === 0;
-                }).length;
-                if (count > maxNextJanLeaves) maxNextJanLeaves = count;
-            });
-
-            const isTimeTraveler = myNextJanLeaves > 0 && myNextJanLeaves === maxNextJanLeaves;
-
-            // --- UNIQUE PERSONA GENERATOR (20+ Static Titles) ---
-            if (totalDays > 0) {
-                let baseTitle = "The Shadow Operative 🕶️";
-                let baseReason = "No distinct pattern found. You kept your movements completely unpredictable.";
-
-                // --- PRE-CALCULATE STATS ---
-                const byDay = {};
-                const byMonth = {};
-                userLeaves.forEach(l => {
-                    const d = new Date(l.date);
-                    const dayName = d.toLocaleDateString('en-US', { weekday: 'long' });
-                    const monthIdx = d.getMonth();
-                    byDay[dayName] = (byDay[dayName] || 0) + 1;
-                    byMonth[monthIdx] = (byMonth[monthIdx] || 0) + 1;
+                    return l.employee === emp.name && d.getFullYear() === currentYear;
                 });
 
-                const mondayCount = byDay['Monday'] || 0;
-                const fridayCount = byDay['Friday'] || 0;
-                const wednesdayCount = byDay['Wednesday'] || 0;
-                const tueThuCount = (byDay['Tuesday'] || 0) + (byDay['Thursday'] || 0);
+                const total = empLeaves.length;
 
-                // Quarter Stats
-                const q1Count = (byMonth[0] || 0) + (byMonth[1] || 0) + (byMonth[2] || 0); // Jan-Mar
-                const q4Count = (byMonth[9] || 0) + (byMonth[10] || 0) + (byMonth[11] || 0); // Oct-Dec
-                const summerCount = (byMonth[5] || 0) + (byMonth[6] || 0) + (byMonth[7] || 0); // Jun-Aug
-                const decCount = byMonth[11] || 0;
+                // Helper Counts
+                let planned = 0, sick = 0, casual = 0;
+                let mon = 0, fri = 0, tueWedThu = 0;
+                let nextYearJan = 0;
 
-                // Unique Day Count (How many different weekdays they took off)
-                const uniqueWeekdays = Object.keys(byDay).length;
+                // Single Pass Calculation
+                const byMonth = {};
+                let maxMonthCount = 0;
+                let maxMonthName = "";
 
-                // --- RULE EVALUATION (Specific -> General) ---
+                const sortedDates = empLeaves.map(l => new Date(l.date).getTime()).sort((a, b) => a - b);
+                let longestStreak = sortedDates.length > 0 ? 1 : 0;
+                let currStreak = 1;
+                for (let i = 1; i < sortedDates.length; i++) {
+                    const diff = Math.round((sortedDates[i] - sortedDates[i - 1]) / (1000 * 60 * 60 * 24));
+                    if (diff === 1) currStreak++;
+                    else { if (currStreak > longestStreak) longestStreak = currStreak; currStreak = 1; }
+                }
+                if (currStreak > longestStreak) longestStreak = currStreak;
 
-                const isLateStart = (q1Count + summerCount) === 0 && totalDays > 0;
 
-                // 1. Time Traveler (Next Year Logic)
-                if (isTimeTraveler) {
-                    baseTitle = "The Time Traveler ⏳";
-                    baseReason = `You're living in the future 2026! Most leaves booked for next Jan (${myNextJanLeaves} days).`;
-                }
-                // 2. The Ghost (Very Low Usage)
-                else if (totalDays <= 3) {
-                    baseTitle = "The Ghost 👻";
-                    baseReason = "You were barely here... or maybe you were never here at all.";
-                }
-                // 3. The Marathon Runner (High Usage)
-                else if (totalDays >= 25 && !isLateStart) {
-                    baseTitle = "The Marathon Runner 🏃";
-                    baseReason = "You used almost every single day available. Maximum efficiency.";
-                }
-                // (Late Start Variation of Marathon Runner)
-                else if (totalDays >= 12 && isLateStart) {
-                    baseTitle = "The Q4 Sprinter 🏃💨";
-                    baseReason = "You joined late but ran fast. Outstanding leave velocity.";
-                }
-                // 4. Fortune Teller (100% Planned)
-                else if (percentPlanned === 100) {
-                    baseTitle = "The Fortune Teller 🔮";
-                    baseReason = "You knew you'd need a break months ago. 0% Surprise, 100% Execution, Planned Escapes everytime!!";
-                }
-                // 5. December Dasher (December specific)
-                else if (decCount / totalDays >= 0.5) {
-                    baseTitle = "The December Dasher 🦌";
-                    baseReason = "You saved all your ammunition for the grand finale. See you next year!";
-                }
-                // 6. Deep Sleeper (Long Streak)
-                else if (longestStreak > 10) {
-                    baseTitle = "The Deep Sleeper 🛌";
-                    baseReason = `You went into deep cover for ${longestStreak} days. We almost authorized a search party.`;
-                }
+                empLeaves.forEach(l => {
+                    if (l.type === 'Planned') planned++;
+                    if (l.type === 'Sick') sick++;
+                    if (l.type === 'Casual') casual++;
 
-                // --- SEASONAL LOGIC (Full Year vs Late Start) ---
-                else if (!isLateStart && summerCount / totalDays >= 0.5) {
-                    baseTitle = "The Summer Soul ☀️";
-                    baseReason = "You followed the sun. Most of your leaves were in June, July, or August.";
-                }
-                else if (!isLateStart && q1Count / totalDays >= 0.5) {
-                    baseTitle = "The Early Riser 🌅";
-                    baseReason = "You started the year resting while everyone else was just waking up.";
-                }
-                else if (!isLateStart && q4Count / totalDays >= 0.6) {
-                    baseTitle = "The Late Bloomer 🌒";
-                    baseReason = "You waited until the very end of the year quarter to vanish.";
-                }
+                    const d = new Date(l.date);
+                    const day = d.getDay(); // 0=Sun, 1=Mon...
+                    if (day === 1) mon++;
+                    if (day === 5) fri++;
+                    if (day >= 2 && day <= 4) tueWedThu++;
 
-                // --- LATE START SPECIFIC TITLES ---
-                else if (isLateStart && (byMonth[8] || 0) / totalDays >= 0.5) { // Sept is index 8
-                    baseTitle = "The September Starter 🏁";
-                    baseReason = "You kicked off the season immediately. No time to waste.";
-                }
-                else if (isLateStart && (byMonth[9] || 0) / totalDays >= 0.5) { // Oct is index 9
-                    baseTitle = "The Spooky Season Specialist 🎃";
-                    baseReason = "Most of your leaves were in October. Coincidence? We think not.";
-                }
+                    // Check Next Year
+                    if (d.getFullYear() === nextYear && d.getMonth() === 0) nextYearJan++;
 
-                // --- COMMON TRAITS (Day/Planning Patterns) ---
-                // 10. Monday Assassin
-                else if ((mondayCount / totalDays) >= 0.45) {
-                    baseTitle = "The Monday Assassin 🗡️";
-                    baseReason = "You have systematically eliminated Mondays from your calendar.";
-                }
-                // 11. Friday Escapist
-                else if ((fridayCount / totalDays) >= 0.45) {
-                    baseTitle = "The Friday Escapist 🚀";
-                    baseReason = "By Thursday noon, you're already mentally checked out.";
-                }
-                // 12. Hump Day Hacker
-                else if ((wednesdayCount / totalDays) >= 0.4) {
-                    baseTitle = "The Hump Day Hacker 🐫";
-                    baseReason = "Splitting the week in half to maintain optimal sanity levels. Genius.";
-                }
-                // 13. Bridge Architect (Tue/Thu)
-                else if ((tueThuCount / totalDays) >= 0.4) {
-                    baseTitle = "The Bridge Architect 🌉";
-                    baseReason = "Expert at turning 1 holiday into 4 days off. Engineering genius.";
-                }
-                // 14. Micro-Doser (Short frequent leaves)
-                else if (longestStreak <= 1 && totalDays > 8) {
-                    baseTitle = "The Micro-Doser 🧪";
-                    baseReason = "You prefer your freedom in small, controlled tactical bursts. Never gone for long.";
-                }
-                // 15. The Chameleon (All days used)
-                else if (uniqueWeekdays >= 5 && totalDays > 10) {
-                    baseTitle = "The Chameleon 🦎";
-                    baseReason = "Monday, Tuesday, Friday... you don't discriminate. You take them all.";
-                }
-                // 16. Calendar CEO (High Planning)
-                else if (percentPlanned >= 85) {
-                    baseTitle = "The Calendar CEO 📅";
-                    baseReason = "Your schedule is tighter than a drum. Strategic allocation of resources.";
-                }
-                // 17. Chaos Agent (Low Planning)
-                else if (percentPlanned <= 20 && totalDays > 5) {
-                    baseTitle = "The Chaos Agent 🌪️";
-                    baseReason = "Zero plans, pure instinct. You keep HR on their toes.";
-                }
-                // 18. Long Weekender (Mon+Fri)
-                else if ((mondayCount + fridayCount) / totalDays >= 0.6) {
-                    baseTitle = "The Long Weekender 🏖️";
-                    baseReason = "Mondays and Mondays (and Fridays) are just suggestions to you.";
-                }
-                // 19. Tactical Planner (Mid Planning)
-                else if (percentPlanned >= 60) {
-                    baseTitle = "The Tactical Planner 🎯";
-                    baseReason = "Balanced, orderly, and suspiciously well-adjusted.";
-                }
-                // 20. Balanced Zen (The Rest)
-                else if (percentPlanned >= 40 && percentPlanned < 60) {
-                    baseTitle = "The Balanced Zen ☯️";
-                    baseReason = "Perfect harmony between planning ahead and seizing the moment.";
-                }
-                // 21. Strategist (Backup)
-                else {
-                    baseTitle = "The Strategist ♟️";
-                    baseReason = "Calculated moves only. You leave when you need to.";
-                }
+                    // Month Clumping
+                    const mName = d.toLocaleString('default', { month: 'long' });
+                    byMonth[mName] = (byMonth[mName] || 0) + 1;
+                    if (byMonth[mName] > maxMonthCount) {
+                        maxMonthCount = byMonth[mName];
+                        maxMonthName = mName;
+                    }
+                });
 
-                punctualityData = {
-                    title: baseTitle,
-                    reason: baseReason
+                return {
+                    name: emp.name,
+                    total,
+                    planned, sick, casual,
+                    mon, fri, tueWedThu,
+                    nextYearJan,
+                    longestStreak,
+                    maxMonthCount, maxMonthName,
+                    utilization: (total / entitlement) * 100
                 };
-            }
+            });
+
+
+            // 2. Define Personas & Criteria (Priority Order)
+            // criteria: (stats) => score. Higher score = better fit.
+            const PERSONAS = [
+                {
+                    title: "The Time Traveler ⏳",
+                    description: "Living in 2026. Booked leaves before the calendar was even printed.",
+                    criteria: (s) => s.nextYearJan * 100 // Heavily weight next year bookings
+                },
+                {
+                    title: "The Ghost 👻",
+                    description: "We checked the records. Do you even work here? (0 Leaves taken)",
+                    criteria: (s) => s.total === 0 ? 1000 : 0
+                },
+                {
+                    title: "The Max Out King 👑",
+                    description: "You paid for the whole leave balance, you're gonna use the whole leave balance.",
+                    criteria: (s) => s.utilization // Higher utilization wins
+                },
+                {
+                    title: "The Sick Day CEO 🤒",
+                    description: "Cough cough. I think I'm coming down with... a 3-day weekend.",
+                    criteria: (s) => s.sick // Most sick leaves
+                },
+                {
+                    title: "The Monday Evader ☕",
+                    description: "Monday Blues? You've never heard of them.",
+                    criteria: (s) => s.mon / (s.total || 1) // Highest % of Mondays
+                },
+                {
+                    title: "The Friday Escape Artist 🏃",
+                    description: "Your weekend starts on Thursday at 5:00 PM sharp.",
+                    criteria: (s) => s.fri / (s.total || 1)
+                },
+                {
+                    title: "The Long Weekender 🏖️",
+                    description: "3-day weekends are your religion.",
+                    criteria: (s) => (s.mon + s.fri) / (s.total || 1)
+                },
+                {
+                    title: "The Marathon Runner 🏃‍♂️",
+                    description: `Disappeared for ${longestStreak} days. We almost sent a search party.`,
+                    criteria: (s) => s.longestStreak
+                },
+                {
+                    title: "The Micro-Doser 💊",
+                    description: "You take leaves in sprinkle form. A day here, a day there.",
+                    criteria: (s) => (s.longestStreak === 1 ? s.total : 0) // Many single days
+                },
+                {
+                    title: "The Fortune Teller 🔮",
+                    description: "You planned this headache 6 months ago.",
+                    criteria: (s) => s.planned / (s.total || 1)
+                },
+                {
+                    title: "The Last Minute Legend ⚡",
+                    description: "Plans? Where we're going, we don't need plans.",
+                    criteria: (s) => s.casual / (s.total || 1)
+                },
+                {
+                    title: "The Hump Day Hero 🐫",
+                    description: "Breaking up the week like a pro. Who needs momentum?",
+                    criteria: (s) => s.tueWedThu / (s.total || 1)
+                },
+                {
+                    title: "The Seasonal Migrator 🍂",
+                    description: "You basically hibernate in one specific month.",
+                    criteria: (s) => s.maxMonthCount / (s.total || 1)
+                },
+                {
+                    title: "The Bank Hoarder 💰",
+                    description: "Saving leaves for the apocalypse? usage is low.",
+                    criteria: (s) => (s.total > 0 && s.total < 10) ? (100 - s.utilization) : 0
+                },
+                {
+                    title: "The Calculated Risk 🧮",
+                    description: "Maximizing holiday overlap with mathematical precision.",
+                    criteria: (s) => Math.random() * 10 // Placeholder for complex logic, random tie-breaker
+                },
+                {
+                    title: "The Average Joe ☕",
+                    description: "Remarkably statistically average. You are the control group.",
+                    criteria: (s) => s.total > 10 && s.total < 25 ? 50 : 0
+                },
+                {
+                    title: "The Wildcard 🃏",
+                    description: "Your leave pattern is so chaotic, even the AI gave up.",
+                    criteria: (s) => 1 // Catch-all
+                }
+            ];
+
+            // 3. Assignment Algorithm (Greedy Best Fit)
+            const assignments = {}; // { username: PersonaObject }
+            const assignedUsers = new Set();
+
+            PERSONAS.forEach(persona => {
+                let bestCandidate = null;
+                let maxScore = -1;
+
+                // Find best candidate for this persona among UNASSIGNED users
+                allUserStats.forEach(stat => {
+                    if (assignedUsers.has(stat.name)) return;
+
+                    const score = persona.criteria(stat);
+                    if (score > maxScore) {
+                        maxScore = score;
+                        bestCandidate = stat;
+                    }
+                });
+
+                // Assign
+                if (bestCandidate && maxScore > 0) { // must have some relevance
+                    assignments[bestCandidate.name] = {
+                        title: persona.title,
+                        reason: persona.description.replace('${longestStreak}', bestCandidate.longestStreak)
+                    };
+                    assignedUsers.add(bestCandidate.name);
+                }
+            });
+
+            // 4. Fill gaps (if anyone left unassigned, give them remaining personas or Wildcard)
+            allUserStats.forEach(stat => {
+                if (!assignedUsers.has(stat.name)) {
+                    // Fallback
+                    assignments[stat.name] = {
+                        title: `Agent ${stat.name.split(' ')[0]} 🕵️`,
+                        reason: "Operative dossier classified. (Unassigned Pattern)"
+                    };
+                }
+            });
+
+            // 5. Select MY Persona
+            punctualityData = assignments[userName] || {
+                title: "The Unassigned 🤷",
+                reason: "System could not determine a profile."
+            };
 
             const message = "Take more leaves!";
 
