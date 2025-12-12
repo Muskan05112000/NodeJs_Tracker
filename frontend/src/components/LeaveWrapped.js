@@ -496,6 +496,8 @@ const LeaveWrapped = ({ open, onClose }) => {
 
                 // --- RULE EVALUATION (Specific -> General) ---
 
+                const isLateStart = (q1Count + summerCount) === 0 && totalDays > 0;
+
                 // 1. Time Traveler (Next Year Logic)
                 if (isTimeTraveler) {
                     baseTitle = "The Time Traveler ⏳";
@@ -507,9 +509,14 @@ const LeaveWrapped = ({ open, onClose }) => {
                     baseReason = "You were barely here... or maybe you were never here at all.";
                 }
                 // 3. The Marathon Runner (High Usage)
-                else if (totalDays >= 25) {
+                else if (totalDays >= 25 && !isLateStart) {
                     baseTitle = "The Marathon Runner 🏃";
                     baseReason = "You used almost every single day available. Maximum efficiency.";
+                }
+                // (Late Start Variation of Marathon Runner)
+                else if (totalDays >= 12 && isLateStart) {
+                    baseTitle = "The Q4 Sprinter 🏃💨";
+                    baseReason = "You joined late but ran fast. Outstanding leave velocity.";
                 }
                 // 4. Fortune Teller (100% Planned)
                 else if (percentPlanned === 100) {
@@ -526,21 +533,32 @@ const LeaveWrapped = ({ open, onClose }) => {
                     baseTitle = "The Deep Sleeper 🛌";
                     baseReason = `You went into deep cover for ${longestStreak} days. We almost authorized a search party.`;
                 }
-                // 7. Summer Soul (Mid-Year)
-                else if (summerCount / totalDays >= 0.5) {
+
+                // --- SEASONAL LOGIC (Full Year vs Late Start) ---
+                else if (!isLateStart && summerCount / totalDays >= 0.5) {
                     baseTitle = "The Summer Soul ☀️";
                     baseReason = "You followed the sun. Most of your leaves were in June, July, or August.";
                 }
-                // 8. Early Riser (Q1)
-                else if (q1Count / totalDays >= 0.5) {
+                else if (!isLateStart && q1Count / totalDays >= 0.5) {
                     baseTitle = "The Early Riser 🌅";
                     baseReason = "You started the year resting while everyone else was just waking up.";
                 }
-                // 9. Late Bloomer (Q4 non-December specific)
-                else if (q4Count / totalDays >= 0.6) {
+                else if (!isLateStart && q4Count / totalDays >= 0.6) {
                     baseTitle = "The Late Bloomer 🌒";
                     baseReason = "You waited until the very end of the year to vanish.";
                 }
+
+                // --- LATE START SPECIFIC TITLES ---
+                else if (isLateStart && (byMonth[8] || 0) / totalDays >= 0.5) { // Sept is index 8
+                    baseTitle = "The September Starter 🏁";
+                    baseReason = "You kicked off the season immediately. No time to waste.";
+                }
+                else if (isLateStart && (byMonth[9] || 0) / totalDays >= 0.5) { // Oct is index 9
+                    baseTitle = "The Spooky Season Specialist 🎃";
+                    baseReason = "Most of your leaves were in October. Coincidence? We think not.";
+                }
+
+                // --- COMMON TRAITS (Day/Planning Patterns) ---
                 // 10. Monday Assassin
                 else if ((mondayCount / totalDays) >= 0.45) {
                     baseTitle = "The Monday Assassin 🗡️";
