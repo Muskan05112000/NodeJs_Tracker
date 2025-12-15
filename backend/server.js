@@ -360,6 +360,23 @@ app.get('*', (req, res) => {
 });
 
 const port = process.env.PORT || 4000;
+const cron = require('node-cron');
+const { fork } = require('child_process');
+
+// Schedule Daily Backup at Midnight (00:00)
+cron.schedule('0 0 * * *', () => {
+  console.log('⏰ Starting Daily Database Backup...');
+  const backupProcess = fork(path.join(__dirname, 'backup_script.js'));
+
+  backupProcess.on('exit', (code) => {
+    if (code === 0) {
+      console.log('✅ Daily Backup Completed Successfully.');
+    } else {
+      console.error(`❌ Daily Backup Failed with exit code ${code}`);
+    }
+  });
+});
+
 app.listen(port, '0.0.0.0', () => {
   console.log(`Backend server running on http://localhost:${port}`);
 });

@@ -338,143 +338,234 @@ const LeaderboardPage = () => {
                 ) : (
                     /* LEADERBOARD LIST (Monthly/Yearly) */
                     <Container maxWidth="md">
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                            {leaderboardData.sorted.map((user, index) => {
-                                const isLeader = index === 0;
-                                const gapToLeader = isLeader ? 0 : leaderboardData.max - user.count;
-                                const userBadges = getBadges(user.name, leaves);
-
-                                return (
-                                    <Box key={user.name} sx={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        p: 2,
-                                        borderRadius: 4,
-                                        bgcolor: isLeader ? 'rgba(255, 215, 0, 0.25)' : 'rgba(255,255,255,0.4)',
-                                        border: isLeader ? '2px solid #FFD700' : '1px solid rgba(255,255,255,0.5)',
-                                        position: 'relative',
-                                        animation: `fadeInUp 0.5s ease backwards ${index * 0.1}s`,
-                                        backdropFilter: 'blur(10px)',
-                                        transition: 'transform 0.2s',
-                                        '&:hover': { transform: 'scale(1.01)', bgcolor: 'rgba(255,255,255,0.6)' },
-                                        boxShadow: '0 4px 15px rgba(0,0,0,0.05)'
+                        {/* YEARLY LOCKED STATE (Only viewable in December) */}
+                        {
+                            tab === 1 && currentMonth.getMonth() !== 11 ? (
+                                <Box sx={{
+                                    textAlign: 'center',
+                                    py: 10,
+                                    px: 4,
+                                    bgcolor: 'rgba(255,255,255,0.25)',
+                                    backdropFilter: 'blur(4px)',
+                                    borderRadius: 8,
+                                    border: '2px dashed rgba(0,0,0,0.1)',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: 3
+                                }}>
+                                    <Box sx={{ fontSize: '4rem', filter: 'grayscale(100%) opacity(0.5)' }}>🔒</Box>
+                                    <Typography variant="h5" fontWeight={800} color="#546e7a">
+                                        Yearly Leaderboard is Locked
+                                    </Typography>
+                                    <Typography variant="body1" sx={{
+                                        fontStyle: 'italic',
+                                        color: '#78909c',
+                                        fontWeight: 600,
+                                        maxWidth: 400,
+                                        lineHeight: 1.6
                                     }}>
-                                        {/* Rank */}
-                                        <Box sx={{
-                                            width: 50,
-                                            textAlign: 'center',
-                                            fontWeight: 900,
-                                            fontSize: '1.5rem',
-                                            color: isLeader ? '#b8860b' : index < 3 ? '#546e7a' : '#78909c'
-                                        }}>
-                                            {isLeader ? '👑' : `#${index + 1}`}
-                                        </Box>
-
-                                        {/* Avatar */}
-                                        <Avatar sx={{
-                                            width: 56,
-                                            height: 56,
-                                            mx: 2,
-                                            bgcolor: stringToColor(user.name),
-                                            fontWeight: 700,
-                                            border: '2px solid rgba(255,255,255,0.8)',
-                                            color: '#fff'
-                                        }}>
-                                            {user.name.charAt(0)}
-                                        </Avatar>
-
-                                        {/* Info */}
-                                        <Box sx={{ flex: 1 }}>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                <Typography variant="h6" fontWeight={800} sx={{ color: '#263238' }}>
-                                                    {user.name}
-                                                </Typography>
-
-                                                {/* Badges Row */}
-                                                <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
-                                                    {userBadges.slice(0, 4).map((badge, i) => (
-                                                        <Tooltip key={i} title={`${badge.name}: ${badge.desc}`} arrow>
-                                                            <div style={{ cursor: 'help', fontSize: '1.2rem' }}>
-                                                                {badge.icon}
-                                                            </div>
-                                                        </Tooltip>
-                                                    ))}
-                                                    {userBadges.length > 4 && (
-                                                        <Tooltip
-                                                            arrow
-                                                            title={
-                                                                <Box sx={{ textAlign: 'center' }}>
-                                                                    {userBadges.slice(4).map((b, i) => (
-                                                                        <Typography key={i} variant="caption" display="block" sx={{ fontSize: '0.75rem' }}>
-                                                                            {b.icon} {b.name}
-                                                                        </Typography>
-                                                                    ))}
-                                                                </Box>
-                                                            }
-                                                        >
-                                                            <Box sx={{
-                                                                bgcolor: 'rgba(0,0,0,0.05)',
-                                                                borderRadius: 10,
-                                                                px: 0.8,
-                                                                py: 0.2,
-                                                                fontSize: '0.75rem',
-                                                                fontWeight: 700,
-                                                                color: '#546e7a',
-                                                                cursor: 'pointer',
-                                                                border: '1px solid rgba(0,0,0,0.1)',
-                                                                '&:hover': { bgcolor: 'rgba(0,0,0,0.1)' }
-                                                            }}>
-                                                                +{userBadges.length - 4}
-                                                            </Box>
-                                                        </Tooltip>
-                                                    )}
-                                                </Box>
-                                            </Box>
-
-                                            {!isLeader && (
-                                                <Typography variant="caption" sx={{ color: '#546e7a', display: 'flex', alignItems: 'center', gap: 0.5, fontWeight: 600 }}>
-                                                    🚀 Needs <span style={{ color: '#d84315', fontWeight: 800 }}>{gapToLeader}</span> more days to catch #1
-                                                </Typography>
-                                            )}
-                                            {isLeader && (
-                                                <Typography variant="caption" sx={{ color: '#f57f17', fontWeight: 800 }}>
-                                                    The Reigning Champion 🏆
-                                                </Typography>
-                                            )}
-                                        </Box>
-
-                                        {/* Count Badge */}
-                                        <Box sx={{ textAlign: 'right', zIndex: 2 }}>
-                                            <Typography variant="h4" fontWeight={900} sx={{ color: isLeader ? '#f57f17' : '#1a237e' }}>
-                                                {user.count}
-                                            </Typography>
-                                            <Typography variant="caption" sx={{ opacity: 0.8, textTransform: 'uppercase', letterSpacing: 1, color: '#455a64', fontWeight: 700 }}>
-                                                DAYS OFF
-                                            </Typography>
-                                        </Box>
-
-                                        {/* Progress Bar Background */}
-                                        <Box sx={{
-                                            position: 'absolute', left: 0, bottom: 0, height: 4,
-                                            width: `${(user.count / leaderboardData.max) * 100}%`,
-                                            bgcolor: isLeader ? '#fbc02d' : '#3949ab',
-                                            opacity: 0.5
-                                        }} />
+                                        "{[
+                                            "Don't rush, you still have time.",
+                                            "History is written in December.",
+                                            "Too early to call the winner. Pace yourself!",
+                                            "Great things take time. Wait for the grand finale.",
+                                            "The year isn't over yet. Keep counting!",
+                                            "Legends are revealed at the finish line."
+                                        ][Math.floor(Math.random() * 6)]}"
+                                    </Typography>
+                                    <Box sx={{
+                                        mt: 2,
+                                        py: 0.5,
+                                        px: 2,
+                                        borderRadius: 4,
+                                        bgcolor: '#eceff1',
+                                        color: '#b0bec5',
+                                        fontSize: '0.8rem',
+                                        fontWeight: 700
+                                    }}>
+                                        UNLOCKS IN DECEMBER
                                     </Box>
-                                );
-                            })}
+                                </Box>
+                            ) : (
+                                /* NORMAL LIST (Monthly limits applied) */
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                    {(() => {
+                                        // Logic for Monthly Limits (Top 3 only until 25th)
+                                        const isMonthly = tab === 0;
+                                        const dayOfMonth = new Date().getDate();
+                                        const isLastWeek = dayOfMonth >= 25;
 
-                            {leaderboardData.sorted.length === 0 && (
-                                <Box sx={{ textAlign: 'center', py: 8, opacity: 0.6, color: '#37474f' }}>
-                                    <Typography variant="h5" fontWeight={700}>No leaves taken yet...</Typography>
-                                    <Typography>Be the first to claim the throne!</Typography>
+                                        let displayList = leaderboardData.sorted;
+                                        let hiddenCount = 0;
+
+                                        if (isMonthly && !isLastWeek) {
+                                            displayList = leaderboardData.sorted.slice(0, 3);
+                                            hiddenCount = leaderboardData.sorted.length - 3;
+                                        }
+
+                                        return (
+                                            <>
+                                                {displayList.map((user, index) => {
+                                                    const isLeader = index === 0;
+                                                    const gapToLeader = isLeader ? 0 : leaderboardData.max - user.count;
+                                                    const userBadges = getBadges(user.name, leaves);
+
+                                                    return (
+                                                        <Box key={user.name} sx={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            p: 2,
+                                                            borderRadius: 4,
+                                                            bgcolor: isLeader ? 'rgba(255, 215, 0, 0.25)' : 'rgba(255,255,255,0.4)',
+                                                            border: isLeader ? '2px solid #FFD700' : '1px solid rgba(255,255,255,0.5)',
+                                                            position: 'relative',
+                                                            animation: `fadeInUp 0.5s ease backwards ${index * 0.1}s`,
+                                                            backdropFilter: 'blur(10px)',
+                                                            transition: 'transform 0.2s',
+                                                            '&:hover': { transform: 'scale(1.01)', bgcolor: 'rgba(255,255,255,0.6)' },
+                                                            boxShadow: '0 4px 15px rgba(0,0,0,0.05)'
+                                                        }}>
+                                                            {/* Rank */}
+                                                            <Box sx={{
+                                                                width: 50,
+                                                                textAlign: 'center',
+                                                                fontWeight: 900,
+                                                                fontSize: '1.5rem',
+                                                                color: isLeader ? '#b8860b' : index < 3 ? '#546e7a' : '#78909c'
+                                                            }}>
+                                                                {isLeader ? '👑' : `#${index + 1}`}
+                                                            </Box>
+
+                                                            {/* Avatar */}
+                                                            <Avatar sx={{
+                                                                width: 56,
+                                                                height: 56,
+                                                                mx: 2,
+                                                                bgcolor: stringToColor(user.name),
+                                                                fontWeight: 700,
+                                                                border: '2px solid rgba(255,255,255,0.8)',
+                                                                color: '#fff'
+                                                            }}>
+                                                                {user.name.charAt(0)}
+                                                            </Avatar>
+
+                                                            {/* Info */}
+                                                            <Box sx={{ flex: 1 }}>
+                                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                                    <Typography variant="h6" fontWeight={800} sx={{ color: '#263238' }}>
+                                                                        {user.name}
+                                                                    </Typography>
+
+                                                                    {/* Badges Row */}
+                                                                    <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
+                                                                        {userBadges.slice(0, 4).map((badge, i) => (
+                                                                            <Tooltip key={i} title={`${badge.name}: ${badge.desc}`} arrow>
+                                                                                <div style={{ cursor: 'help', fontSize: '1.2rem' }}>
+                                                                                    {badge.icon}
+                                                                                </div>
+                                                                            </Tooltip>
+                                                                        ))}
+                                                                        {userBadges.length > 4 && (
+                                                                            <Tooltip
+                                                                                arrow
+                                                                                title={
+                                                                                    <Box sx={{ textAlign: 'center' }}>
+                                                                                        {userBadges.slice(4).map((b, i) => (
+                                                                                            <Typography key={i} variant="caption" display="block" sx={{ fontSize: '0.75rem' }}>
+                                                                                                {b.icon} {b.name}
+                                                                                            </Typography>
+                                                                                        ))}
+                                                                                    </Box>
+                                                                                }
+                                                                            >
+                                                                                <Box sx={{
+                                                                                    bgcolor: 'rgba(0,0,0,0.05)',
+                                                                                    borderRadius: 10,
+                                                                                    px: 0.8,
+                                                                                    py: 0.2,
+                                                                                    fontSize: '0.75rem',
+                                                                                    fontWeight: 700,
+                                                                                    color: '#546e7a',
+                                                                                    cursor: 'pointer',
+                                                                                    border: '1px solid rgba(0,0,0,0.1)',
+                                                                                    '&:hover': { bgcolor: 'rgba(0,0,0,0.1)' }
+                                                                                }}>
+                                                                                    +{userBadges.length - 4}
+                                                                                </Box>
+                                                                            </Tooltip>
+                                                                        )}
+                                                                    </Box>
+                                                                </Box>
+
+                                                                {!isLeader && (
+                                                                    <Typography variant="caption" sx={{ color: '#546e7a', display: 'flex', alignItems: 'center', gap: 0.5, fontWeight: 600 }}>
+                                                                        🚀 Needs <span style={{ color: '#d84315', fontWeight: 800 }}>{gapToLeader}</span> more days to catch #1
+                                                                    </Typography>
+                                                                )}
+                                                                {isLeader && (
+                                                                    <Typography variant="caption" sx={{ color: '#f57f17', fontWeight: 800 }}>
+                                                                        The Reigning Champion 🏆
+                                                                    </Typography>
+                                                                )}
+                                                            </Box>
+
+                                                            {/* Count Badge */}
+                                                            <Box sx={{ textAlign: 'right', zIndex: 2 }}>
+                                                                <Typography variant="h4" fontWeight={900} sx={{ color: isLeader ? '#f57f17' : '#1a237e' }}>
+                                                                    {user.count}
+                                                                </Typography>
+                                                                <Typography variant="caption" sx={{ opacity: 0.8, textTransform: 'uppercase', letterSpacing: 1, color: '#455a64', fontWeight: 700 }}>
+                                                                    DAYS OFF
+                                                                </Typography>
+                                                            </Box>
+
+                                                            {/* Progress Bar Background */}
+                                                            <Box sx={{
+                                                                position: 'absolute', left: 0, bottom: 0, height: 4,
+                                                                width: `${(user.count / leaderboardData.max) * 100}%`,
+                                                                bgcolor: isLeader ? '#fbc02d' : '#3949ab',
+                                                                opacity: 0.5
+                                                            }} />
+                                                        </Box>
+                                                    );
+                                                })}
+
+                                                {/* Hidden Users Message (if any) */}
+                                                {hiddenCount > 0 && (
+                                                    <Box sx={{
+                                                        textAlign: 'center',
+                                                        p: 3,
+                                                        mx: 4,
+                                                        bgcolor: 'rgba(255,255,255,0.4)',
+                                                        borderRadius: 4,
+                                                        border: '1px dashed rgba(0,0,0,0.1)',
+                                                        color: '#546e7a'
+                                                    }}>
+                                                        <Typography variant="h6" fontWeight={700}>
+                                                            🕵️ And {hiddenCount} others...
+                                                        </Typography>
+                                                        <Typography variant="caption" fontWeight={600}>
+                                                            The full list reveals on the 25th of the month!
+                                                        </Typography>
+                                                    </Box>
+                                                )}
+                                            </>
+                                        );
+                                    })()}
+
+                                    {leaderboardData.sorted.length === 0 && (
+                                        <Box sx={{ textAlign: 'center', py: 8, opacity: 0.6, color: '#37474f' }}>
+                                            <Typography variant="h5" fontWeight={700}>No leaves taken yet...</Typography>
+                                            <Typography>Be the first to claim the throne!</Typography>
+                                        </Box>
+                                    )}
                                 </Box>
                             )}
-                        </Box>
                     </Container>
                 )}
             </Container>
-        </Box>
+        </Box >
     );
 };
 

@@ -60,6 +60,7 @@ const ApplyLeave = () => {
 
   // Add state for leavesForDate
   const [leavesForDate, setLeavesForDate] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleMonthYearChange = (date) => {
     setMonth(date.getMonth());
@@ -68,21 +69,30 @@ const ApplyLeave = () => {
   };
 
   const handleModalSubmit = async ({ employee, type }) => {
-    for (let date of selectedDates) {
-      // Check if leave exists
-      const existing = leaves.find(l => l.date === date && l.employee === employee);
-      if (existing) {
-        showAlert('Employee already applied leave. If you want to edit the information select the applied leave in Select Leave dropdown');
-        return;
+    setIsSubmitting(true);
+    try {
+      for (let date of selectedDates) {
+        // Check if leave exists
+        const existing = leaves.find(l => l.date === date && l.employee === employee);
+        if (existing) {
+          showAlert('Employee already applied leave. If you want to edit the information select the applied leave in Select Leave dropdown');
+          setIsSubmitting(false); // Reset if error
+          return;
+        }
       }
+      for (let date of selectedDates) {
+        await addLeave({ date, employee, type });
+      }
+      setModalOpen(false);
+      setSelectedDates([]);
+      setEditingLeave(null);
+      setTimeout(() => { showAlert('Leave Applied Successfully'); }, 100);
+    } catch (error) {
+      console.error("Error submitting leave:", error);
+      showAlert('Failed to apply leave. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
-    for (let date of selectedDates) {
-      await addLeave({ date, employee, type });
-    }
-    setModalOpen(false);
-    setSelectedDates([]);
-    setEditingLeave(null);
-    setTimeout(() => { showAlert('Leave Applied Successfully'); }, 100);
   };
 
   // For demo: only allow Chennai regional holidays
@@ -138,6 +148,7 @@ const ApplyLeave = () => {
         editingLeave={editingLeave}
         leavesForDate={leavesForDate}
         onSubmit={handleModalSubmit}
+        isSubmitting={isSubmitting}
         onEdit={async (leave) => {
           // Always update the leave entry by its _id with new employee/type
           if (leave._id) {

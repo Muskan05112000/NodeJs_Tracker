@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { IconButton } from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -7,6 +9,7 @@ const Login = ({ loggedOut }) => {
   const { login, loading, error } = useAuth();
   const [associateId, setAssociateId] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
 
@@ -47,14 +50,25 @@ const Login = ({ loggedOut }) => {
           style={{ fontSize: 17, borderRadius: 8, border: '1.5px solid #b39ddb', padding: '10px 18px', fontFamily: 'Inter, Roboto, Segoe UI, Arial, sans-serif' }}
           required
         />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          required
-          style={{ fontSize: 17, borderRadius: 8, border: '1.5px solid #b39ddb', padding: '10px 18px', fontFamily: 'Inter, Roboto, Segoe UI, Arial, sans-serif' }}
-        />
+        <div style={{ position: 'relative', width: '100%' }}>
+          <input
+            type={showPassword ? "text" : "password"}
+            placeholder="Password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            required
+            style={{ fontSize: 17, borderRadius: 8, border: '1.5px solid #b39ddb', padding: '10px 18px', fontFamily: 'Inter, Roboto, Segoe UI, Arial, sans-serif', width: '100%', boxSizing: 'border-box' }}
+          />
+          <IconButton
+            onClick={() => setShowPassword(!showPassword)}
+            onMouseDown={(e) => e.preventDefault()}
+            edge="end"
+            size="small"
+            style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: '#b39ddb' }}
+          >
+            {showPassword ? <VisibilityOff /> : <Visibility />}
+          </IconButton>
+        </div>
         <button
           type="submit"
           className="button-primary"

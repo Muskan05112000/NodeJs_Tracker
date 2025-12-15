@@ -95,7 +95,32 @@ function Calendar({
         console.error("Failed to check global trigger", err);
       }
 
-      // 2. Normal Date Window Logic - DISABLED BY USER REQUEST (Only Admin Trigger works)
+      // 2. Normal Date Window Logic (Dec 10 - Jan 5)
+      const now = new Date();
+      const currentMonth = now.getMonth(); // 0-11
+      const currentDay = now.getDate(); // 1-31
+
+      // Month: Dec (11) >= 10th OR Month: Jan (0) <= 5th
+      const isTime = (currentMonth === 11 && currentDay >= 10) || (currentMonth === 0 && currentDay <= 5);
+
+      if (isTime) {
+        // Use associateId as primary key (fallback to username)
+        const userId = user?.associateId || user?.username || 'anon';
+        const storageKeyLastShown = `wrappedLastShown_${userId}`;
+        const lastShown = parseInt(localStorage.getItem(storageKeyLastShown) || '0');
+        const ONE_DAY = 24 * 60 * 60 * 1000;
+
+        // Show if not shown in last 24h
+        if (Date.now() - lastShown > ONE_DAY) {
+          console.log("Wrapped: Date window active & cooldown passed. Showing teaser.");
+          setTeaserOpen(true);
+          localStorage.setItem(storageKeyLastShown, Date.now().toString());
+        } else {
+          console.log("Wrapped: In window but cooldown active.");
+        }
+      } else {
+        console.log("Wrapped: Not in date window (Dec 10 - Jan 5).");
+      }
     };
 
 
