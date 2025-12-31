@@ -34,6 +34,7 @@ const HolidayUpdate = () => {
   const { holidays, setHolidays } = useContext(AppContext);
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMsg, setAlertMsg] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   React.useEffect(() => {
     if (country) {
@@ -104,6 +105,7 @@ const HolidayUpdate = () => {
       national: isNational,
       // You can add more fields if needed
     };
+    setIsSubmitting(true);
     try {
       const res = await fetch(`${API_BASE}/holidays`, {
         method: "POST",
@@ -124,6 +126,8 @@ const HolidayUpdate = () => {
     } catch (err) {
       setAlertMsg("Failed to add holiday: " + err.message);
       setAlertOpen(true);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -324,6 +328,7 @@ const HolidayUpdate = () => {
           <Button
             onClick={() => setOpen(false)}
             variant="outlined"
+            disabled={isSubmitting}
             sx={{
               borderRadius: 2,
               fontWeight: 700,
@@ -347,6 +352,7 @@ const HolidayUpdate = () => {
             onClick={handleSubmit}
             variant="contained"
             color="secondary"
+            disabled={isSubmitting}
             sx={{
               borderRadius: 2,
               fontWeight: 700,
@@ -367,7 +373,9 @@ const HolidayUpdate = () => {
           </Button>
           {selectedHoliday && (
             <Button
+              disabled={isSubmitting}
               onClick={async () => {
+                setIsSubmitting(true);
                 try {
                   const res = await fetch(`${API_BASE}/holidays/${selectedHoliday._id}`, { method: 'DELETE' });
                   if (!res.ok) throw new Error((await res.json()).error || 'Failed to revoke holiday');
@@ -382,6 +390,8 @@ const HolidayUpdate = () => {
                 } catch (err) {
                   setAlertMsg('Failed to revoke holiday: ' + err.message);
                   setAlertOpen(true);
+                } finally {
+                  setIsSubmitting(false);
                 }
               }}
               variant="contained"
