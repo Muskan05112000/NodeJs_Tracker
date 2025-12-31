@@ -19,6 +19,7 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 
 import AlertDialog from "./AlertDialog";
 import { AppContext } from "../context/AppContext";
+const API_BASE = process.env.REACT_APP_API_URL || '/api';
 
 const HolidayUpdate = () => {
   const [selectedHoliday, setSelectedHoliday] = useState(null);
@@ -104,7 +105,7 @@ const HolidayUpdate = () => {
       // You can add more fields if needed
     };
     try {
-      const res = await fetch("/api/holidays", {
+      const res = await fetch(`${API_BASE}/holidays`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newHoliday)
@@ -368,7 +369,7 @@ const HolidayUpdate = () => {
             <Button
               onClick={async () => {
                 try {
-                  const res = await fetch(`/api/holidays/${selectedHoliday._id}`, { method: 'DELETE' });
+                  const res = await fetch(`${API_BASE}/holidays/${selectedHoliday._id}`, { method: 'DELETE' });
                   if (!res.ok) throw new Error((await res.json()).error || 'Failed to revoke holiday');
                   setHolidays(prev => prev.filter(h => h._id !== selectedHoliday._id));
                   setOpen(false);

@@ -35,7 +35,7 @@ function Calendar({
   const handleSendTrigger = async () => {
     handleConfirmClose();
     try {
-      await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:4000/api'}/config/trigger-wrapped`, { method: 'POST' });
+      await fetch(`${process.env.REACT_APP_API_URL || '/api'}/config/trigger-wrapped`, { method: 'POST' });
       setSnackbar({ open: true, message: '✉️ Letters Sent! Everyone will see "Wrapped" on their next refresh.', severity: 'success' });
     } catch (e) {
       setSnackbar({ open: true, message: 'Failed to send trigger. Please try again.', severity: 'error' });
@@ -58,7 +58,7 @@ function Calendar({
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
 
-        const res = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:4000/api'}/config/wrapped-trigger?t=${Date.now()}`, {
+        const res = await fetch(`${process.env.REACT_APP_API_URL || '/api'}/config/wrapped-trigger?t=${Date.now()}`, {
           headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' },
           signal: controller.signal
         });
