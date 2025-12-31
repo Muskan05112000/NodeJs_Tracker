@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { 
+import React, { useState, useEffect, useContext } from "react";
+import {
   Box,
   Button,
   Typography,
@@ -17,7 +17,7 @@ import { getNames as getCountryNames } from 'country-list';
 import { City } from 'country-state-city';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 
-import { useContext } from "react";
+import AlertDialog from "./AlertDialog";
 import { AppContext } from "../context/AppContext";
 
 const HolidayUpdate = () => {
@@ -31,6 +31,8 @@ const HolidayUpdate = () => {
   const [isNational, setIsNational] = useState(false);
   const [countryCities, setCountryCities] = useState([]);
   const { holidays, setHolidays } = useContext(AppContext);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMsg, setAlertMsg] = useState("");
 
   React.useEffect(() => {
     if (country) {
@@ -53,6 +55,16 @@ const HolidayUpdate = () => {
               });
             }
           });
+          // Ensure specific requested cities are present for India
+          if (country === 'India') {
+            const extraCities = ['Kochi', 'Mangalore', 'Visakhapatnam'];
+            extraCities.forEach(c => {
+              if (!seen.has(c)) {
+                seen.add(c);
+                formattedCities.push({ label: c, value: c, state: '', raw: { name: c } });
+              }
+            });
+          }
           setCountryCities(formattedCities);
         } else {
           setCountryCities([]);
@@ -106,6 +118,8 @@ const HolidayUpdate = () => {
       setDate("");
       setOccasion("");
       setIsNational(false);
+      setAlertMsg("Holiday added successfully!");
+      setAlertOpen(true);
     } catch (err) {
       setAlertMsg("Failed to add holiday: " + err.message);
       setAlertOpen(true);
@@ -392,6 +406,11 @@ const HolidayUpdate = () => {
           )}
         </DialogActions>
       </Dialog>
+      <AlertDialog
+        open={alertOpen}
+        message={alertMsg}
+        onClose={() => setAlertOpen(false)}
+      />
     </Box>
   );
 };

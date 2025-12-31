@@ -108,7 +108,8 @@ const holidaySchema = new mongoose.Schema({
   occasion: String,
   date: String, // ISO format
   locations: [String],
-  national: Boolean
+  national: Boolean,
+  country: String
 });
 const Holiday = mongoose.model('Holiday', holidaySchema);
 

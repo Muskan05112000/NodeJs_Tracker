@@ -137,10 +137,10 @@ function Calendar({
     let weekCells = [];
     for (let i = 0; i < 7; i++) {
       const formattedDate = format(day, "yyyy-MM-dd");
-      const holiday = holidays.find(h => h.date === formattedDate);
-      const isNational = holiday && holiday.national;
-      // Regional: not national, has locations array, and at least one location
-      const isRegional = holiday && !isNational && Array.isArray(holiday.locations) && holiday.locations.length > 0;
+      const dayHolidays = holidays.filter(h => h.date === formattedDate);
+      const isNational = dayHolidays.some(h => h.national);
+      // Regional: any holiday that is not national
+      const isRegional = dayHolidays.some(h => !h.national && Array.isArray(h.locations) && h.locations.length > 0);
       const dayLeaves = leaves.filter(l => l.date === formattedDate);
       const isSelected = selectedDates.includes(formattedDate);
       const isInCurrentMonth = day.getMonth() === month;
@@ -150,7 +150,7 @@ function Calendar({
         isSelected,
         isNational,
         isRegional,
-        holiday,
+        dayHolidays,
         dayLeaves,
         dayObj: new Date(day),
         isInCurrentMonth,
@@ -232,8 +232,9 @@ function Calendar({
             }}>{format(cell.dayObj, "d")}</span>
             {/* Regional Holiday block (left-aligned, stacked, small, white) */}
             {
-              cell.isRegional && cell.holiday && (
+              cell.dayHolidays.filter(h => !h.national).map((h, idx) => (
                 <div
+                  key={`reg-${idx}`}
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
@@ -266,15 +267,16 @@ function Calendar({
                   }}
                 >
                   <span style={{ fontWeight: 900, fontSize: 11, letterSpacing: 0.3, textShadow: '0 1px 2px #0002' }}>🌐 Regional Holiday</span>
-                  <span style={{ fontWeight: 700, fontSize: 11 }}>{cell.holiday.occasion}</span>
-                  <span style={{ fontWeight: 400, fontSize: 10, opacity: 0.92 }}>{Array.isArray(cell.holiday.locations) ? cell.holiday.locations.join(', ') : cell.holiday.locations}</span>
+                  <span style={{ fontWeight: 700, fontSize: 11 }}>{h.occasion}</span>
+                  <span style={{ fontWeight: 400, fontSize: 10, opacity: 0.92 }}>{Array.isArray(h.locations) ? h.locations.join(', ') : h.locations}</span>
                 </div>
-              )
+              ))
             }
             {/* National Holiday (smaller, left-aligned) */}
             {
-              cell.isNational && cell.holiday && (
+              cell.dayHolidays.filter(h => h.national).map((h, idx) => (
                 <span
+                  key={`nat-${idx}`}
                   style={{
                     display: 'inline-block',
                     fontWeight: 800,
@@ -301,9 +303,9 @@ function Calendar({
                     e.currentTarget.style.background = 'linear-gradient(90deg, #ffb347 0%, #ffcc33 100%)';
                   }}
                 >
-                  🏵 National Holiday<br /><span style={{ fontWeight: 700 }}>{cell.holiday.occasion}</span>
+                  🏵 National Holiday<br /><span style={{ fontWeight: 700 }}>{h.occasion}</span>
                 </span>
-              )
+              ))
             }
             {/* Leave entries (appear below holiday info, with spacing) */}
             {
