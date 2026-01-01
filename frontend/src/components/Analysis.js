@@ -1,16 +1,12 @@
-import React, { useState } from "react";
-import * as XLSX from 'xlsx';
-import { Box, Button, Paper, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Snackbar, Alert, CircularProgress, Grid, Select, Typography } from "@mui/material";
-import MenuItem from '@mui/material/MenuItem';
+import React, { useState, useContext } from "react";
+import { Box, Button, Paper, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Snackbar, Alert, CircularProgress, Grid, Select, Typography, MenuItem } from "@mui/material";
+import { startOfWeek } from "date-fns";
 import SendMailDialog from "./SendMailDialog";
 import AnalysisCharts from "./AnalysisCharts";
 import AnalysisTable from "./AnalysisTable";
-
 import DonutChartOnly from "./DonutChartOnly";
-
-import { useContext } from "react";
+import TeamAnalysis from "./TeamAnalysis";
 import { AppContext } from "../context/AppContext";
-import { format, startOfWeek, endOfWeek, addDays, isSameDay } from "date-fns";
 
 const Analysis = () => {
   const [selectedWeek, setSelectedWeek] = useState(1);
@@ -29,7 +25,6 @@ const Analysis = () => {
   const [mailSuccess, setMailSuccess] = useState(false);
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMsg, setAlertMsg] = useState('');
-
 
   const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -67,7 +62,7 @@ const Analysis = () => {
       activeLeaves,
       weekStart: weekStart.toISOString()
     };
-    console.log('Send Mail Payload:', payload);
+
     fetch(`${process.env.REACT_APP_API_URL || '/api'}/send-leave-email`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -85,7 +80,6 @@ const Analysis = () => {
   };
 
   // Excel Download Handler
-  // Helper to get number of weeks in the selected month
   const getWeeksInMonth = (month, year) => {
     const lastDay = new Date(year, month + 1, 0).getDate();
     return Math.ceil(lastDay / 7);
@@ -94,7 +88,6 @@ const Analysis = () => {
   const handleDownloadExcel = async () => {
     const currentMonth = startMonth;
     const currentYear = year;
-    // Calculate week start and end for selected week
     const weekStartDate = (selectedWeek - 1) * 7 + 1;
     const weekEndDate = Math.min(selectedWeek * 7, new Date(currentYear, currentMonth + 1, 0).getDate());
     const weekStart = new Date(currentYear, currentMonth, weekStartDate);
@@ -103,7 +96,7 @@ const Analysis = () => {
     while (d <= weekEndDate) {
       const dateObj = new Date(currentYear, currentMonth, d);
       const dayOfWeek = dateObj.getDay();
-      if (dayOfWeek >= 1 && dayOfWeek <= 5) { // 1 = Monday, 5 = Friday
+      if (dayOfWeek >= 1 && dayOfWeek <= 5) {
         weekDays.push(dateObj);
       }
       d++;
@@ -149,7 +142,6 @@ const Analysis = () => {
 
   return (
     <div style={{ padding: '20px', margin: 0, width: '100%', boxSizing: 'border-box' }}>
-      {/* Excel Success Snackbar */}
       <Snackbar
         open={excelSuccess}
         autoHideDuration={2500}
@@ -160,7 +152,7 @@ const Analysis = () => {
           Excel sheet downloaded successfully
         </Alert>
       </Snackbar>
-      {/* Excel Error Snackbar */}
+
       <Snackbar
         open={alertOpen}
         autoHideDuration={3000}
@@ -171,7 +163,7 @@ const Analysis = () => {
           {alertMsg}
         </Alert>
       </Snackbar>
-      {/* Excel Week Modal */}
+
       <Dialog open={excelModalOpen} onClose={() => setExcelModalOpen(false)} maxWidth="xs" fullWidth>
         <DialogTitle>Select Week</DialogTitle>
         <DialogContent dividers>
@@ -194,7 +186,6 @@ const Analysis = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Send Mail Dialog */}
       <SendMailDialog
         open={sendMailOpen}
         onClose={() => setSendMailOpen(false)}
@@ -244,186 +235,134 @@ const Analysis = () => {
         </Box>
       </Box>
 
-      {/* Main Content Card */}
-      <Paper elevation={3} sx={{ p: 4, borderRadius: 4, bgcolor: '#fff', minHeight: '80vh' }}>
-
-
-
-        {/* Filter Row */}
-        <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} gap={3} mb={4} width="100%">
+      {/* Filter Paper */}
+      <Paper elevation={0} sx={{ p: 3, mb: 4, borderRadius: 4, bgcolor: '#fff', border: '1px solid #eef2f6', boxShadow: '0 4px 24px 0 rgba(0,0,0,0.02)' }}>
+        <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} gap={3} width="100%">
           {/* Employee Filter */}
           <Box flex={1} display="flex" flexDirection="column" gap={1}>
-            <Typography variant="subtitle2" fontWeight={700} color="#5e35b1" sx={{ ml: 0.5 }}>
-              Employee Name
+            <Typography variant="caption" fontWeight={700} color="#5e35b1" sx={{ ml: 0.5 }}>
+              EMPLOYEE
             </Typography>
             <Select
               value={selectedEmployee}
               onChange={e => setSelectedEmployee(e.target.value)}
               variant="outlined"
-              displayEmpty
+              size="small"
               fullWidth
-              sx={{
-                height: 56,
-                borderRadius: 3,
-                bgcolor: '#fff',
-                boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(0,0,0,0.08)' },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#7c4dff' },
-                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#7c4dff', borderWidth: 2 },
-                fontWeight: 600,
-                color: '#424242',
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 6px 20px rgba(124,77,255,0.15)',
-                }
-              }}
-              MenuProps={{ PaperProps: { sx: { borderRadius: 3, mt: 1, boxShadow: '0 8px 32px rgba(0,0,0,0.08)' } } }}
+              sx={{ borderRadius: 2, bgcolor: '#f8fbfc', fontWeight: 600 }}
             >
-              <MenuItem value="All" sx={{ fontWeight: 500 }}>All Employees</MenuItem>
+              <MenuItem value="All">All Employees</MenuItem>
               {employees.map(emp => (
-                <MenuItem key={emp.name} value={emp.name} sx={{ fontWeight: 500 }}>{emp.name}</MenuItem>
+                <MenuItem key={emp.name} value={emp.name}>{emp.name}</MenuItem>
               ))}
             </Select>
           </Box>
 
           {/* Year Filter */}
           <Box flex={1} display="flex" flexDirection="column" gap={1}>
-            <Typography variant="subtitle2" fontWeight={700} color="#5e35b1" sx={{ ml: 0.5 }}>
-              Year
+            <Typography variant="caption" fontWeight={700} color="#5e35b1" sx={{ ml: 0.5 }}>
+              YEAR
             </Typography>
             <Select
               value={year}
               onChange={e => setYear(Number(e.target.value))}
               variant="outlined"
+              size="small"
               fullWidth
-              sx={{
-                height: 56,
-                borderRadius: 3,
-                bgcolor: '#fff',
-                boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(0,0,0,0.08)' },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#7c4dff' },
-                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#7c4dff', borderWidth: 2 },
-                fontWeight: 600,
-                color: '#424242',
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 6px 20px rgba(124,77,255,0.15)',
-                }
-              }}
-              MenuProps={{ PaperProps: { sx: { borderRadius: 3, mt: 1, boxShadow: '0 8px 32px rgba(0,0,0,0.08)' } } }}
+              sx={{ borderRadius: 2, bgcolor: '#f8fbfc', fontWeight: 600 }}
             >
               {Array.from({ length: 7 }, (_, i) => new Date().getFullYear() - i).map(y => (
-                <MenuItem key={y} value={y} sx={{ fontWeight: 500 }}>{y}</MenuItem>
+                <MenuItem key={y} value={y}>{y}</MenuItem>
               ))}
             </Select>
           </Box>
 
-          {/* From Month Filter */}
+          {/* From Month */}
           <Box flex={1} display="flex" flexDirection="column" gap={1}>
-            <Typography variant="subtitle2" fontWeight={700} color="#5e35b1" sx={{ ml: 0.5 }}>
-              From Month
+            <Typography variant="caption" fontWeight={700} color="#5e35b1" sx={{ ml: 0.5 }}>
+              FROM
             </Typography>
             <Select
               value={startMonth}
               onChange={e => setStartMonth(Number(e.target.value))}
               variant="outlined"
+              size="small"
               fullWidth
-              sx={{
-                height: 56,
-                borderRadius: 3,
-                bgcolor: '#fff',
-                boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(0,0,0,0.08)' },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#7c4dff' },
-                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#7c4dff', borderWidth: 2 },
-                fontWeight: 600,
-                color: '#424242',
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 6px 20px rgba(124,77,255,0.15)',
-                }
-              }}
-              MenuProps={{ PaperProps: { sx: { borderRadius: 3, mt: 1, boxShadow: '0 8px 32px rgba(0,0,0,0.08)', maxHeight: 300 } } }}
+              sx={{ borderRadius: 2, bgcolor: '#f8fbfc', fontWeight: 600 }}
             >
               {monthNames.map((m, idx) => (
-                <MenuItem key={m} value={idx} sx={{ fontWeight: 500 }}>{m}</MenuItem>
+                <MenuItem key={m} value={idx}>{m}</MenuItem>
               ))}
             </Select>
           </Box>
 
-          {/* To Month Filter */}
+          {/* To Month */}
           <Box flex={1} display="flex" flexDirection="column" gap={1}>
-            <Typography variant="subtitle2" fontWeight={700} color="#5e35b1" sx={{ ml: 0.5 }}>
-              To Month
+            <Typography variant="caption" fontWeight={700} color="#5e35b1" sx={{ ml: 0.5 }}>
+              TO
             </Typography>
             <Select
               value={endMonth}
               onChange={e => setEndMonth(Number(e.target.value))}
               variant="outlined"
+              size="small"
               fullWidth
-              sx={{
-                height: 56,
-                borderRadius: 3,
-                bgcolor: '#fff',
-                boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(0,0,0,0.08)' },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#7c4dff' },
-                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#7c4dff', borderWidth: 2 },
-                fontWeight: 600,
-                color: '#424242',
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 6px 20px rgba(124,77,255,0.15)',
-                }
-              }}
-              MenuProps={{ PaperProps: { sx: { borderRadius: 3, mt: 1, boxShadow: '0 8px 32px rgba(0,0,0,0.08)', maxHeight: 300 } } }}
+              sx={{ borderRadius: 2, bgcolor: '#f8fbfc', fontWeight: 600 }}
             >
               {monthNames.map((m, idx) => (
-                <MenuItem key={m} value={idx} disabled={idx < startMonth} sx={{ fontWeight: 500 }}>{m}</MenuItem>
+                <MenuItem key={m} value={idx} disabled={idx < startMonth}>{m}</MenuItem>
               ))}
             </Select>
           </Box>
         </Box>
-
-        {/* Charts Grid */}
-        <Grid container spacing={8}>
-          {/* Left Column */}
-          <Grid item xs={12} lg={6} display="flex" flexDirection="column" gap={4}>
-            <Box>
-              {/* Donut Chart Only (no line/bar) */}
-              <DonutChartOnly startMonth={startMonth} endMonth={endMonth} year={year} />
-            </Box>
-            <Box mt={4}>
-              {/* Employee Table Card */}
-              <AnalysisTable
-                startMonth={startMonth}
-                endMonth={endMonth}
-                setStartMonth={setStartMonth}
-                setEndMonth={setEndMonth}
-                year={year}
-                setYear={setYear}
-                selectedEmployee={selectedEmployee}
-              />
-            </Box>
-          </Grid>
-          {/* Right Column */}
-          <Grid item xs={12} lg={6} display="flex" flexDirection="column" gap={4}>
-            <Box>
-              {/* First Bar Chart Card (monthly leave counts only) */}
-              <AnalysisCharts month={startMonth} year={year} type="bar1" />
-            </Box>
-            <Box mt={4}>
-              {/* Second Bar Chart Card */}
-              <AnalysisCharts month={startMonth} year={year} type="bar2" />
-            </Box>
-          </Grid>
-        </Grid>
       </Paper>
+
+      {/* DASHBOARD GRID */}
+      {/* DASHBOARD GRID - MODERN UI */}
+      <Box sx={{
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+        gap: 3,
+        alignItems: 'stretch'
+      }}>
+        {/* Card 1: Donut */}
+        <Paper elevation={0} sx={{ p: 3, borderRadius: 3, border: '1px solid #eef2f6', boxShadow: '0 2px 14px rgba(0,0,0,0.03)', height: '100%', minHeight: 420, display: 'flex', flexDirection: 'column' }}>
+          <DonutChartOnly startMonth={startMonth} endMonth={endMonth} year={year} />
+        </Paper>
+
+        {/* Card 2: Monthly Bar */}
+        <Paper elevation={0} sx={{ p: 3, borderRadius: 3, border: '1px solid #eef2f6', boxShadow: '0 2px 14px rgba(0,0,0,0.03)', height: '100%', minHeight: 420 }}>
+          <AnalysisCharts month={startMonth} year={year} type="bar1" />
+        </Paper>
+
+        {/* Card 3: Yearly Bar */}
+        <Paper elevation={0} sx={{ p: 3, borderRadius: 3, border: '1px solid #eef2f6', boxShadow: '0 2px 14px rgba(0,0,0,0.03)', height: '100%', minHeight: 420 }}>
+          <AnalysisCharts month={startMonth} year={year} type="bar2" />
+        </Paper>
+
+        {/* Card 4: Team Analysis */}
+        <Paper elevation={0} sx={{ p: 3, borderRadius: 3, border: '1px solid #eef2f6', boxShadow: '0 2px 14px rgba(0,0,0,0.03)', height: '100%', minHeight: 420 }}>
+          <TeamAnalysis startMonth={startMonth} endMonth={endMonth} year={year} />
+        </Paper>
+
+        {/* Full Width Table */}
+        <Box sx={{ gridColumn: { xs: 'span 1', md: 'span 2' } }}>
+          <Paper elevation={0} sx={{ p: 3, borderRadius: 3, border: '1px solid #eef2f6', boxShadow: '0 2px 14px rgba(0,0,0,0.03)' }}>
+            <Typography variant="h6" fontWeight={700} color="#1a237e" sx={{ mb: 3, fontFamily: 'Inter, sans-serif', fontSize: '1.1rem' }}>
+              Detailed Leave Records
+            </Typography>
+            <AnalysisTable
+              startMonth={startMonth}
+              endMonth={endMonth}
+              setStartMonth={setStartMonth}
+              setEndMonth={setEndMonth}
+              year={year}
+              setYear={setYear}
+              selectedEmployee={selectedEmployee}
+            />
+          </Paper>
+        </Box>
+      </Box>
     </div>
   );
 };

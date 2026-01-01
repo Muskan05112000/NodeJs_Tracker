@@ -110,45 +110,39 @@ function AnalysisCharts({ month, year, type, onViewDetails }) {
       return null;
     };
     return (
-      <Paper sx={{ p: 2 }}>
+      <Box sx={{ height: '100%', width: '100%', minHeight: 350 }}>
         <Typography
           sx={{
             fontWeight: 900,
-            fontSize: '2.1rem',
+            fontSize: '1.4rem',
             fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif',
-            background: 'linear-gradient(90deg, #7c4dff 0%, #b388ff 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            textAlign: 'center',
-            letterSpacing: 1,
-            textShadow: '0 2px 12px #b388ff33',
-            mb: 2
+            color: '#5e35b1',
+            letterSpacing: 0.5,
+            mb: 2,
+            textAlign: 'left'
           }}
         >
           Monthly Leave Counts ({year})
         </Typography>
-        <ResponsiveContainer width="100%" height={420}>
-          <BarChart data={monthlyCounts} barGap={2}>
-            <XAxis dataKey="month" tick={{ fontWeight: 600, fontSize: 14, fontFamily: 'Inter, Roboto, Arial, sans-serif' }} axisLine={{ stroke: '#bbb' }} tickLine={false} />
-            {/**
-  Dynamically calculate max Y value and ticks for better scaling and granularity
-*/}
+        <ResponsiveContainer width="100%" height="85%">
+          <BarChart data={monthlyCounts} barGap={2} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+            <XAxis dataKey="month" tick={{ fontWeight: 600, fontSize: 13, fontFamily: 'Inter, Roboto, Arial, sans-serif' }} axisLine={{ stroke: '#eee' }} tickLine={false} />
             <YAxis
-              tick={{ fontWeight: 600, fontSize: 14, fontFamily: 'Inter, Roboto, Arial, sans-serif' }}
-              axisLine={{ stroke: '#bbb' }}
+              tick={{ fontWeight: 600, fontSize: 13, fontFamily: 'Inter, Roboto, Arial, sans-serif' }}
+              axisLine={false}
               tickLine={false}
               domain={[0, yMax]}
               ticks={yTicks}
             />
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(66,165,245,0.07)' }} />
-            <Legend iconType="circle" wrapperStyle={{ fontWeight: 600, fontSize: 15, fontFamily: 'Inter, Roboto, Arial, sans-serif' }} />
-            <Bar dataKey="Planned" fill="#66bb6a" radius={[8, 8, 0, 0]} isAnimationActive />
-            <Bar dataKey="Emergency" fill="#ef5350" radius={[8, 8, 0, 0]} isAnimationActive />
-            <Bar dataKey="Sick" fill="#fff176" radius={[8, 8, 0, 0]} isAnimationActive />
-            <Bar dataKey="HalfDay" fill="#8bc34a" radius={[8, 8, 0, 0]} isAnimationActive />
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(124, 77, 255, 0.04)' }} />
+            <Legend iconType="circle" wrapperStyle={{ paddingTop: '10px', fontSize: 13, fontFamily: 'Inter' }} />
+            <Bar dataKey="Planned" fill="#66bb6a" radius={[4, 4, 4, 4]} isAnimationActive />
+            <Bar dataKey="Emergency" fill="#ef5350" radius={[4, 4, 4, 4]} isAnimationActive />
+            <Bar dataKey="Sick" fill="#fff176" radius={[4, 4, 4, 4]} isAnimationActive />
+            <Bar dataKey="HalfDay" fill="#8bc34a" radius={[4, 4, 4, 4]} isAnimationActive />
           </BarChart>
         </ResponsiveContainer>
-      </Paper>
+      </Box>
     );
   }
   if (type === 'bar2') {
@@ -169,33 +163,30 @@ function AnalysisCharts({ month, year, type, onViewDetails }) {
       return null;
     };
     return (
-      <Paper sx={{ p: 2 }}>
+      <Box sx={{ height: '100%', width: '100%', minHeight: 350 }}>
         <Typography
           sx={{
             fontWeight: 900,
-            fontSize: '2.1rem',
+            fontSize: '1.4rem',
             fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif',
-            background: 'linear-gradient(90deg, #7c4dff 0%, #b388ff 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            textAlign: 'center',
-            letterSpacing: 1,
-            textShadow: '0 2px 12px #b388ff33',
-            mb: 2
+            color: '#5e35b1',
+            letterSpacing: 0.5,
+            mb: 2,
+            textAlign: 'left'
           }}
         >
           Yearly Total Leaves
         </Typography>
-        <ResponsiveContainer width="100%" height={540}>
-          <BarChart data={yearlyCounts} barGap={4}>
-            <XAxis dataKey="year" tick={{ fontWeight: 600, fontSize: 15, fontFamily: 'Inter, Roboto, Arial, sans-serif' }} axisLine={{ stroke: '#bbb' }} tickLine={false} />
-            <YAxis tick={{ fontWeight: 600, fontSize: 15, fontFamily: 'Inter, Roboto, Arial, sans-serif' }} axisLine={{ stroke: '#bbb' }} tickLine={false} />
-            <Tooltip content={<CustomTooltipYear />} cursor={{ fill: 'rgba(66,165,245,0.07)' }} />
-            <Legend iconType="circle" wrapperStyle={{ fontWeight: 600, fontSize: 15, fontFamily: 'Inter, Roboto, Arial, sans-serif' }} />
-            <Bar dataKey="Total" fill="#7c4dff" radius={[8, 8, 0, 0]} isAnimationActive />
+        <ResponsiveContainer width="100%" height="85%">
+          <BarChart data={yearlyCounts} barGap={4} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+            <XAxis dataKey="year" tick={{ fontWeight: 600, fontSize: 13, fontFamily: 'Inter, Roboto, Arial, sans-serif' }} axisLine={{ stroke: '#eee' }} tickLine={false} />
+            <YAxis tick={{ fontWeight: 600, fontSize: 13, fontFamily: 'Inter, Roboto, Arial, sans-serif' }} axisLine={false} tickLine={false} />
+            <Tooltip content={<CustomTooltipYear />} cursor={{ fill: 'rgba(124, 77, 255, 0.04)' }} />
+            <Legend iconType="circle" wrapperStyle={{ paddingTop: '10px', fontSize: 13, fontFamily: 'Inter' }} />
+            <Bar dataKey="Total" fill="#7c4dff" radius={[4, 4, 4, 4]} isAnimationActive />
           </BarChart>
         </ResponsiveContainer>
-      </Paper>
+      </Box>
     );
   }
   return null;

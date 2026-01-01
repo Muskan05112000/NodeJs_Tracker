@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Dialog, Box, Typography, Button, Slide, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useAuth } from '../context/AuthContext';
@@ -7,695 +7,57 @@ import { AppContext } from '../context/AppContext';
 import Confetti from 'react-confetti';
 import CountUp from 'react-countup';
 
+// New Imports
+import { useLeaveStats } from '../hooks/useLeaveStats';
+import { useWrappedAudio } from '../hooks/useWrappedAudio';
+import ScratchCard from './wrapped/ScratchCard';
+import SecretReveal from './wrapped/SecretReveal';
+
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
 });
 
-// Helper Component for "Spy Reveal" effect
-const SecretReveal = ({ children }) => {
-    const [revealed, setRevealed] = useState(false);
-    return (
-        <Box
-            onMouseEnter={() => setRevealed(true)}
-            onClick={() => setRevealed(true)}
-            sx={{ position: 'relative', display: 'inline-block', cursor: 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'40\' height=\'48\' viewport=\'0 0 100 100\' style=\'fill:black;font-size:24px;\'><text y=\'50%\'>🔍</text></svg>") 16 0, auto' }}
-        >
-            <Box sx={{
-                filter: revealed ? 'none' : 'blur(20px)',
-                transition: 'filter 0.8s ease',
-                opacity: revealed ? 1 : 0.8
-            }}>
-                {children}
-            </Box>
-            {!revealed && (
-                <Box sx={{
-                    position: 'absolute', top: '50%', left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    pointerEvents: 'none',
-                    zIndex: 10
-                }}>
-                    <Typography variant="h1" sx={{ fontSize: '4rem', opacity: 0.7 }}>🔍</Typography>
-                    <Box sx={{
-                        marginTop: 1,
-                        background: 'linear-gradient(90deg, rgba(0,0,0,0.6) 0%, rgba(50,50,50,0.4) 100%)',
-                        backdropFilter: 'blur(4px)',
-                        padding: '6px 20px',
-                        borderRadius: '6px', // Rectangular
-                        border: '1px solid rgba(255,255,255,0.15)',
-                        animation: 'pulse 2s infinite ease-in-out',
-                        display: 'inline-block',
-                        minWidth: 'max-content' // Ensure it fits text
-                    }}>
-                        <Typography variant="caption" sx={{
-                            color: '#fff',
-                            fontWeight: 700,
-                            letterSpacing: 2,
-                            fontSize: '0.7rem',
-                            textTransform: 'uppercase',
-                            whiteSpace: 'nowrap' // Force single line
-                        }}>
-                            HOVER TO DECLASSIFY
-                        </Typography>
-                    </Box>
-                    <style>{`
-                        @keyframes pulse {
-                            from { opacity: 0.7; transform: scale(1); }
-                            to { opacity: 1; transform: scale(1.05); }
-                        }
-                    `}</style>
-                </Box>
-            )}
-        </Box>
-    );
-};
-
-// Scratch Card Component for Title
-// Scratch Card Component for Title
-const ScratchCard = ({ children, width = 600, height = 300, coverText = "SCRATCH TO REVEAL MISSION", onScratchStart, onScratchEnd }) => {
-    const canvasRef = React.useRef(null);
-    const [isScratching, setIsScratching] = useState(false);
-    const [cleared, setCleared] = useState(false);
-
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d');
-
-        // Fill with "CLASSIFIED" styles
-        ctx.fillStyle = '#C0C0C0'; // Silver
-        ctx.fillRect(0, 0, width, height);
-
-        // Add Texture
-        for (let i = 0; i < 5000; i++) {
-            ctx.fillStyle = Math.random() > 0.5 ? '#A9A9A9' : '#D3D3D3';
-            ctx.fillRect(Math.random() * width, Math.random() * height, 2, 2);
-        }
-
-        // Add Text
-        ctx.fillStyle = '#444';
-        ctx.font = '900 30px "Courier New", monospace';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.save();
-        ctx.translate(width / 2, height / 2);
-        ctx.rotate(-0.1);
-        ctx.fillText("/// CONFIDENTIAL ///", 0, -20);
-        ctx.font = '700 20px "Courier New", monospace';
-        ctx.fillText(coverText, 0, 20);
-        ctx.restore();
-
-    }, [width, height, coverText]);
-
-    const scratch = (e) => {
-        if (cleared) return;
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d');
-        const rect = canvas.getBoundingClientRect();
-
-        let x, y;
-        if (e.type.includes('touch')) {
-            x = e.touches[0].clientX - rect.left;
-            y = e.touches[0].clientY - rect.top;
-        } else {
-            x = e.clientX - rect.left;
-            y = e.clientY - rect.top;
-        }
-
-        ctx.globalCompositeOperation = 'destination-out';
-        ctx.beginPath();
-        ctx.arc(x, y, 60, 0, Math.PI * 2); // Brush size
-        ctx.fill();
-    };
-
-    const handleStart = (e) => {
-        e.stopPropagation();
-        setIsScratching(true);
-        if (onScratchStart) onScratchStart();
-    };
-
-    const handleEnd = (e) => {
-        e.stopPropagation();
-        setIsScratching(false);
-        if (onScratchEnd) onScratchEnd();
-    };
-
-    return (
-        <Box className="interactive" sx={{ position: 'relative', width: width, height: height, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-            {/* Content Underneath */}
-            <Box sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', zIndex: 1, userSelect: 'none' }}>
-                {children}
-            </Box>
-
-            {/* Scratch Overlay */}
-            <canvas
-                ref={canvasRef}
-                width={width}
-                height={height}
-                onMouseDown={handleStart}
-                onMouseUp={handleEnd}
-                onMouseMove={(e) => { e.stopPropagation(); if (isScratching || e.buttons === 1) scratch(e); }}
-                onTouchStart={handleStart}
-                onTouchEnd={handleEnd}
-                onTouchMove={(e) => { e.stopPropagation(); if (isScratching) scratch(e); }}
-                onClick={(e) => e.stopPropagation()}
-                style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    zIndex: 2,
-                    cursor: 'crosshair',
-                    borderRadius: '10px',
-                    touchAction: 'none',
-                    pointerEvents: cleared ? 'none' : 'auto'
-                }}
-            />
-        </Box>
-    );
-};
-
 const LeaveWrapped = ({ open, onClose }) => {
     const { user } = useAuth();
     const { activeLeaves, employees } = useContext(AppContext);
-    const [data, setData] = useState(null);
+
+    // Extracted Logic Hooks
+    const data = useLeaveStats(user, activeLeaves, employees);
+
     const [step, setStep] = useState(0);
     const [showConfetti, setShowConfetti] = useState(false);
+    const lastInteractTime = useRef(0);
     const currentYear = new Date().getFullYear();
-    const lastInteractTime = React.useRef(0);
+
+    // Audio Hook
+    useWrappedAudio(open, step);
 
     const handleScratchEnd = () => {
         lastInteractTime.current = Date.now();
     };
 
+    // Navigation Logic
+    const handleTap = (e) => {
+        if (e.target.closest('button') || e.target.closest('.interactive')) return;
+        if (Date.now() - lastInteractTime.current < 500) return;
 
-    // --- SFX & BACKGROUND MUSIC LOGIC ---
-    const [audioContext, setAudioContext] = useState(null);
+        const screenWidth = window.innerWidth;
+        const clickX = e.clientX;
 
-    useEffect(() => {
-        if (!open) return;
-
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        setAudioContext(ctx);
-
-        // --- BACKGROUND MUSIC (Jingle Bells - Slow & Rich) ---
-        // Tempo: ~80 BPM (Slowed down for majestic feel)
-        // Harmony added: Bass roots (C, F, G)
-        const E5 = 659.25, G5 = 783.99, C5 = 523.25, D5 = 587.33, F5 = 698.46;
-        const C3 = 130.81, F3 = 174.61, G3 = 196.00, A3 = 220.00; // Bass Notes
-
-        const TEMPO_SCALE = 1.3; // Slower
-
-        const sequence = [
-            // MELODY (Jingle Bells)
-            { note: E5, time: 0.0, duration: 0.2 }, { note: E5, time: 0.25, duration: 0.2 }, { note: E5, time: 0.5, duration: 0.4 },
-            { note: E5, time: 1.0, duration: 0.2 }, { note: E5, time: 1.25, duration: 0.2 }, { note: E5, time: 1.5, duration: 0.4 },
-            { note: E5, time: 2.0, duration: 0.2 }, { note: G5, time: 2.25, duration: 0.2 }, { note: C5, time: 2.5, duration: 0.2 }, { note: D5, time: 2.75, duration: 0.1 }, { note: E5, time: 3.0, duration: 0.8 },
-
-            { note: F5, time: 4.0, duration: 0.2 }, { note: F5, time: 4.25, duration: 0.2 }, { note: F5, time: 4.5, duration: 0.2 }, { note: F5, time: 4.75, duration: 0.2 },
-            { note: F5, time: 5.0, duration: 0.2 }, { note: E5, time: 5.25, duration: 0.2 }, { note: E5, time: 5.5, duration: 0.2 }, { note: E5, time: 5.75, duration: 0.1 }, { note: E5, time: 6.0, duration: 0.1 },
-            { note: E5, time: 6.25, duration: 0.2 }, { note: D5, time: 6.5, duration: 0.2 }, { note: D5, time: 6.75, duration: 0.2 }, { note: E5, time: 7.0, duration: 0.2 }, { note: D5, time: 7.25, duration: 0.4 }, { note: G5, time: 7.75, duration: 0.4 },
-
-            // BASS HARMONY (Long sustained notes)
-            { note: C3, time: 0.0, duration: 1.8, type: 'triangle', vol: 0.2 }, // C Major
-            { note: C3, time: 2.0, duration: 1.8, type: 'triangle', vol: 0.2 },
-            { note: F3, time: 4.0, duration: 1.8, type: 'triangle', vol: 0.2 }, // F Major
-            { note: G3, time: 6.0, duration: 1.8, type: 'triangle', vol: 0.2 }, // G Major
-        ];
-
-        // Apply Tempo Scaling
-        const scaledSequence = sequence.map(s => ({
-            ...s,
-            time: s.time * TEMPO_SCALE,
-            duration: s.duration * TEMPO_SCALE
-        }));
-
-        const outputGain = ctx.createGain();
-        outputGain.gain.setValueAtTime(0.1, ctx.currentTime); // Low global volume
-        outputGain.connect(ctx.destination);
-
-        const scheduleNote = (freq, startTime, duration, type = 'sine', vol = 0.2) => {
-            const osc = ctx.createOscillator();
-            const gainNode = ctx.createGain();
-
-            osc.type = type; // Pure tone
-            osc.frequency.setValueAtTime(freq, startTime);
-
-            // Envelope
-            gainNode.gain.setValueAtTime(0, startTime);
-            gainNode.gain.linearRampToValueAtTime(vol, startTime + 0.05); // Attack
-            gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration); // Decay based on note length
-
-            osc.connect(gainNode);
-            gainNode.connect(outputGain);
-
-            osc.start(startTime);
-            osc.stop(startTime + duration + 0.1);
-        };
-
-        const LOOP_DURATION = 8.0 * TEMPO_SCALE; // Seconds
-        let nextLoopTime = ctx.currentTime + 0.5; // Start shortly after load
-
-        const scheduleLoop = () => {
-            if (ctx.state === 'closed') return;
-
-            // Schedule the whole sequence for this loop iteration
-            scaledSequence.forEach(event => {
-                scheduleNote(event.note, nextLoopTime + event.time, event.duration, event.type, event.vol);
-            });
-
-            // Advance time
-            nextLoopTime += LOOP_DURATION;
-        };
-
-        // Poll to schedule loops continuously (lookahead)
-        const checkScheduler = () => {
-            if (ctx.state === 'closed') return;
-            // If next loop is within 1s, schedule it
-            if (nextLoopTime < ctx.currentTime + 1.0) {
-                scheduleLoop();
+        if (clickX > screenWidth / 2) {
+            // Next
+            if (step < slides.length - 1) {
+                setStep(step + 1);
+                if (step + 1 === slides.length - 1) setShowConfetti(true);
             }
-        };
-
-        const timerID = setInterval(checkScheduler, 500);
-        // Initial schedule
-        scheduleLoop();
-
-        return () => {
-            clearInterval(timerID);
-            if (ctx.state !== 'closed') ctx.close();
-        };
-    }, [open]);
-
-    // Play specific SFX on top of background music
-    useEffect(() => {
-        if (!audioContext || audioContext.state === 'closed') return;
-
-        const playSfx = (type) => {
-            if (audioContext.state === 'suspended') audioContext.resume();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-
-            if (type === 'woosh') {
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
-                oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.1);
-                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-                oscillator.start();
-                oscillator.stop(audioContext.currentTime + 0.1);
-            } else if (type === 'thud') {
-                oscillator.type = 'triangle';
-                oscillator.frequency.setValueAtTime(100, audioContext.currentTime);
-                oscillator.frequency.exponentialRampToValueAtTime(10, audioContext.currentTime + 0.3);
-                gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-                oscillator.start();
-                oscillator.stop(audioContext.currentTime + 0.3);
+        } else {
+            // Prev
+            if (step > 0) {
+                setStep(step - 1);
+                setShowConfetti(false);
             }
-        };
-
-        playSfx('woosh');
-        if (step === 5) setTimeout(() => playSfx('thud'), 800);
-
-    }, [step, audioContext]);
-
-    useEffect(() => {
-        if (open && user && activeLeaves && employees) {
-            // Client-side calculation (Single Source of Truth)
-            const userName = user.name || user.username;
-            // const currentYear = new Date().getFullYear(); // Moved to component scope
-
-            if (!userName) {
-                setData({ error: true, message: "User identifier not found" });
-                return;
-            }
-
-            // Filter for THIS user and THIS year
-            const userLeaves = activeLeaves.filter(l => {
-                const d = new Date(l.date);
-                return l.employee === userName && d.getFullYear() === currentYear;
-            });
-
-            // Calculate Rank (Global Leaderboard)
-            const leaderboard = employees.map(emp => {
-                const count = activeLeaves.filter(l => {
-                    const d = new Date(l.date);
-                    return l.employee === emp.name && d.getFullYear() === currentYear;
-                }).length;
-                return { name: emp.name, count };
-            });
-
-            // Sort descending (Highest leaves = Rank 1)
-            leaderboard.sort((a, b) => b.count - a.count);
-
-            // Find my rank (1-based index)
-            const myRankIndex = leaderboard.findIndex(item => item.name === userName);
-            const rank = myRankIndex !== -1 ? myRankIndex + 1 : 'N/A';
-
-
-            if (userLeaves.length === 0) {
-                setData({
-                    totalDays: 0,
-                    topType: 'Undercover Agent',
-                    longestStreak: 0,
-                    message: "We missed to concentrate spying on you... more will come full fledged from the upcoming year for sure!",
-                    punctuality: { title: "The Ghost 👻", reason: "No data found. You were invisible." },
-                    peakMonth: "N/A",
-                    peakMonthTitle: "Radio Silence",
-                    utilization: 0,
-                    utilizationTitle: "The Untouched Reserve",
-                    rank: rank
-                });
-                setStep(0);
-                return;
-            }
-
-            // Calculation Logic
-            // 1. Total Days
-            const totalDays = userLeaves.length;
-
-            // 2. Top Type & Peak Month & Advance Booking
-            const byType = {};
-            const byMonth = {};
-            let advanceBookingCount = 0;
-
-            userLeaves.forEach(l => {
-                // Type
-                byType[l.type] = (byType[l.type] || 0) + 1;
-
-                // Month
-                const d = new Date(l.date);
-                const m = d.toLocaleString('default', { month: 'long' });
-                byMonth[m] = (byMonth[m] || 0) + 1;
-
-                // Advance (Simplified: Planned = Advance)
-                if (l.type === 'Planned') advanceBookingCount++;
-            });
-
-            // Top Type
-            let topType = 'Planned';
-            let maxCount = 0;
-            for (const [type, count] of Object.entries(byType)) {
-                if (count > maxCount) {
-                    maxCount = count;
-                    topType = type;
-                }
-            }
-
-            // Peak Month
-            let peakMonth = 'N/A';
-            let peakMonthCount = 0;
-            for (const [m, count] of Object.entries(byMonth)) {
-                if (count > peakMonthCount) {
-                    peakMonthCount = count;
-                    peakMonth = m;
-                }
-            }
-
-            // 3. Longest Streak
-            const sortedDates = userLeaves
-                .map(l => new Date(l.date).getTime())
-                .sort((a, b) => a - b);
-
-            let longestStreak = 1;
-            let currentStreak = 1;
-            for (let i = 1; i < sortedDates.length; i++) {
-                const diffDays = Math.round((sortedDates[i] - sortedDates[i - 1]) / (1000 * 60 * 60 * 24));
-                if (diffDays === 1) {
-                    currentStreak++;
-                } else {
-                    if (currentStreak > longestStreak) longestStreak = currentStreak;
-                    currentStreak = 1;
-                }
-            }
-            if (currentStreak > longestStreak) longestStreak = currentStreak;
-
-            // 4. Punctuality (Random Funny Titles with Reasons)
-
-            // 5. Utilization
-            const entitlement = 36;
-            const utilization = Math.min(Math.round((totalDays / entitlement) * 100), 100);
-            let utilizationTitle = "Saving for a Rainy Day";
-            if (utilization > 90) utilizationTitle = "The Leave Master (Apex Tier)";
-            else if (utilization > 75) utilizationTitle = "The Max Utilizer Award";
-
-
-
-            // 6. Punctuality / Persona (Refined Logic)
-            const percentPlanned = totalDays > 0 ? (advanceBookingCount / totalDays) * 100 : 0;
-            let punctualityData = { title: "The Ghost 👻", reason: "No data found. You were invisible." };
-
-            // --- TIME TRAVELER LOGIC ---
-            const nextYear = currentYear + 1;
-
-            // --- GLOBAL UNIQUE PERSONA GENERATOR ---
-            // --- GLOBAL UNIQUE PERSONA GENERATOR ---
-            // 1. Calculate stats for ALL employees to find "Best Fits"
-            // This ensures NO TWO USERS get the same title.
-
-            const allUserStats = employees.map(emp => {
-                const empLeaves = activeLeaves.filter(l => {
-                    const d = new Date(l.date);
-                    return l.employee === emp.name && d.getFullYear() === currentYear;
-                });
-
-                const total = empLeaves.length;
-
-                // Helper Counts
-                let planned = 0, sick = 0, casual = 0;
-                let mon = 0, fri = 0, tueWedThu = 0;
-                let nextYearJan = 0;
-
-                // Single Pass Calculation
-                const byMonth = {};
-                let maxMonthCount = 0;
-                let maxMonthName = "";
-
-                const sortedDates = empLeaves.map(l => new Date(l.date).getTime()).sort((a, b) => a - b);
-                let longestStreak = sortedDates.length > 0 ? 1 : 0;
-                let currStreak = 1;
-                for (let i = 1; i < sortedDates.length; i++) {
-                    const diff = Math.round((sortedDates[i] - sortedDates[i - 1]) / (1000 * 60 * 60 * 24));
-                    if (diff === 1) currStreak++;
-                    else { if (currStreak > longestStreak) longestStreak = currStreak; currStreak = 1; }
-                }
-                if (currStreak > longestStreak) longestStreak = currStreak;
-
-
-                empLeaves.forEach(l => {
-                    if (l.type === 'Planned') planned++;
-                    if (l.type === 'Sick') sick++;
-                    if (l.type === 'Casual') casual++;
-
-                    const d = new Date(l.date);
-                    const day = d.getDay(); // 0=Sun, 1=Mon...
-                    if (day === 1) mon++;
-                    if (day === 5) fri++;
-                    if (day >= 2 && day <= 4) tueWedThu++;
-
-                    // Check Next Year
-                    if (d.getFullYear() === nextYear && d.getMonth() === 0) nextYearJan++;
-
-                    // Month Clumping
-                    const mName = d.toLocaleString('default', { month: 'long' });
-                    byMonth[mName] = (byMonth[mName] || 0) + 1;
-                    if (byMonth[mName] > maxMonthCount) {
-                        maxMonthCount = byMonth[mName];
-                        maxMonthName = mName;
-                    }
-                });
-
-                return {
-                    name: emp.name,
-                    total,
-                    planned, sick, casual,
-                    mon, fri, tueWedThu,
-                    nextYearJan,
-                    longestStreak,
-                    maxMonthCount, maxMonthName,
-                    utilization: (total / entitlement) * 100
-                };
-            }).sort((a, b) => a.name.localeCompare(b.name)); // Deterministic Order
-
-
-            // 2. Define Personas & Criteria (Priority Order)
-            // criteria: (stats) => score. Higher score = better fit.
-            const PERSONAS = [
-                {
-                    title: "The Time Traveler ⏳",
-                    description: "Living in 2026. Booked leaves before the calendar was even printed.",
-                    criteria: (s) => s.nextYearJan * 100 // Heavily weight next year bookings
-                },
-                {
-                    title: "The Ghost 👻",
-                    description: "We checked the records. Do you even work here? (0 Leaves taken)",
-                    criteria: (s) => s.total === 0 ? 1000 : 0
-                },
-                {
-                    title: "The Max Out King 👑",
-                    description: "You paid for the whole leave balance, you're gonna use the whole leave balance.",
-                    criteria: (s) => s.utilization // Higher utilization wins
-                },
-                {
-                    title: "The Sick Day CEO 🤒",
-                    description: "Cough cough. I think I'm coming down with... a 3-day weekend.",
-                    criteria: (s) => s.sick // Most sick leaves
-                },
-                {
-                    title: "The Monday Evader ☕",
-                    description: "Monday Blues? You've never heard of them.",
-                    criteria: (s) => s.total > 2 ? (s.mon * s.mon) / s.total : 0 // Weighted Ratio
-                },
-                {
-                    title: "The Friday Escape Artist 🏃",
-                    description: "Your weekend starts on Thursday at 5:00 PM sharp.",
-                    criteria: (s) => s.total > 2 ? (s.fri * s.fri) / s.total : 0
-                },
-                {
-                    title: "The Long Weekender 🏖️",
-                    description: "3-day weekends are your religion.",
-                    criteria: (s) => {
-                        const count = s.mon + s.fri;
-                        return s.total > 2 ? (count * count) / s.total : 0;
-                    }
-                },
-                {
-                    title: "The Marathon Runner 🏃‍♂️",
-                    description: `Disappeared for ${longestStreak} days. We almost sent a search party.`,
-                    criteria: (s) => s.longestStreak
-                },
-                {
-                    title: "The Micro-Doser 💊",
-                    description: "You take leaves in sprinkle form. A day here, a day there.",
-                    criteria: (s) => (s.longestStreak === 1 ? s.total : 0) // Many single days
-                },
-                {
-                    title: "The Fortune Teller 🔮",
-                    description: "You planned this headache 6 months ago.",
-                    criteria: (s) => s.total > 2 ? (s.planned * s.planned) / s.total : 0
-                },
-                {
-                    title: "The Last Minute Legend ⚡",
-                    description: "Plans? Where we're going, we don't need plans.",
-                    criteria: (s) => s.total > 2 ? (s.casual * s.casual) / s.total : 0
-                },
-                {
-                    title: "The Hump Day Hero 🐫",
-                    description: "Breaking up the week like a pro. Who needs momentum?",
-                    criteria: (s) => s.total > 2 ? (s.tueWedThu * s.tueWedThu) / s.total : 0
-                },
-                {
-                    title: "The Seasonal Migrator 🍂",
-                    description: "You basically hibernate in one specific month.",
-                    criteria: (s) => s.total > 2 ? (s.maxMonthCount * s.maxMonthCount) / s.total : 0
-                },
-                {
-                    title: "The Bank Hoarder 💰",
-                    description: "Saving leaves for the apocalypse? usage is low.",
-                    criteria: (s) => (s.total > 0 && s.total < 10) ? (100 - s.utilization) : 0
-                },
-                {
-                    title: "The Calculated Risk 🧮",
-                    description: "Maximizing holiday overlap with mathematical precision.",
-                    criteria: (s) => (s.name.charCodeAt(0) % 10) // Consistent Hash Trend
-                },
-                {
-                    title: "The Average Joe ☕",
-                    description: "Remarkably statistically average. You are the control group.",
-                    criteria: (s) => s.total >= 5 && s.total <= 20 ? 50 : 0
-                },
-                {
-                    title: "The Deep Sleeper 🛌",
-                    description: "Silent, steady, and completely under the radar.",
-                    criteria: (s) => s.total > 0 && s.total < 5 ? 20 : 0
-                },
-                {
-                    title: "The Mystery 🕵️‍♂️",
-                    description: "We have data on you, but it refuses to fit a pattern.",
-                    criteria: (s) => (s.name.length % 2 === 0) ? 10 : 0 // Arbitrary split
-                },
-                {
-                    title: "The NPC 🤖",
-                    description: "Just doing your job, living your life. Respect.",
-                    criteria: (s) => (s.name.length % 2 !== 0) ? 10 : 0 // Arbitrary split
-                },
-                {
-                    title: "The Wildcard 🃏",
-                    description: "Your leave pattern is so chaotic, even the AI gave up.",
-                    criteria: (s) => 1 // Catch-all
-                }
-            ];
-
-            // 3. Assignment Algorithm (Greedy Best Fit)
-            const assignments = {}; // { username: PersonaObject }
-            const assignedUsers = new Set();
-
-            PERSONAS.forEach(persona => {
-                let bestCandidate = null;
-                let maxScore = -1;
-
-                // Find best candidate for this persona among UNASSIGNED users
-                allUserStats.forEach(stat => {
-                    if (assignedUsers.has(stat.name)) return;
-
-                    const score = persona.criteria(stat);
-                    if (score > maxScore) {
-                        maxScore = score;
-                        bestCandidate = stat;
-                    }
-                });
-
-                // Assign
-                if (bestCandidate && maxScore > 0) { // must have some relevance
-                    assignments[bestCandidate.name] = {
-                        title: persona.title,
-                        reason: persona.description.replace('${longestStreak}', bestCandidate.longestStreak)
-                    };
-                    assignedUsers.add(bestCandidate.name);
-                }
-            });
-
-            // 4. Fill gaps (if anyone left unassigned, give them remaining personas or Wildcard)
-            allUserStats.forEach(stat => {
-                if (!assignedUsers.has(stat.name)) {
-                    // Fallback
-                    assignments[stat.name] = {
-                        title: `Agent ${stat.name.split(' ')[0]} 🕵️`,
-                        reason: "Operative dossier classified. (Unassigned Pattern)"
-                    };
-                }
-            });
-
-            // 5. Select MY Persona
-            punctualityData = assignments[userName] || {
-                title: "The Unassigned 🤷",
-                reason: "System could not determine a profile."
-            };
-
-            const message = "Take more leaves!";
-
-            setData({
-                totalDays,
-                topType,
-                longestStreak,
-                message,
-                punctuality: punctualityData, // Now deterministic
-                peakMonth,
-                peakMonthTitle: "The Month You Peaced Out",
-                utilization,
-                utilizationTitle,
-                rank,
-                rank
-            });
-            setStep(0);
-            setShowConfetti(false);
         }
-    }, [open, user, activeLeaves, employees]);
-
-
-
-
+    };
 
     if (!data) return (
         <Dialog fullScreen open={open} onClose={onClose} TransitionComponent={Transition}>
@@ -706,7 +68,6 @@ const LeaveWrapped = ({ open, onClose }) => {
             </Box>
         </Dialog>
     );
-
 
     // Dynamic backgrounds
     const bgStyles = [
@@ -779,16 +140,6 @@ const LeaveWrapped = ({ open, onClose }) => {
         </style>
     );
 
-    if (data.error) return (
-        <Dialog fullScreen open={open} onClose={onClose} TransitionComponent={Transition}>
-            {/* Styles */}
-            <AnimationStyles />
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', bgcolor: '#1a1a1a', flexDirection: 'column' }}>
-                <Typography variant="h4" fontWeight={700} color="#fff">Error Loading Mission</Typography>
-                <Button onClick={onClose} variant="contained" sx={{ mt: 2 }}>Close</Button>
-            </Box>
-        </Dialog>
-    );
     const funnyQuotes = [
         "I don't need a vacation, I need a restart button.",
         "My favorite childhood memory is not paying bills.",
@@ -801,35 +152,6 @@ const LeaveWrapped = ({ open, onClose }) => {
         "Current status: Looking for a way to get paid for sleeping.",
         "Sickness is just my body saying 'Nope, not today'."
     ];
-
-
-    // Navigation Logic (Tap Left/Right)
-    const handleTap = (e) => {
-        // Ignore clicks on buttons/interactive elements to prevent double triggers
-        if (e.target.closest('button') || e.target.closest('.interactive')) return;
-
-        // Prevent navigation if user just finished interacting (e.g. scratching)
-        if (Date.now() - lastInteractTime.current < 500) return;
-
-        const screenWidth = window.innerWidth;
-        const clickX = e.clientX;
-
-        if (clickX > screenWidth / 2) {
-            // Next
-            if (step < slides.length - 1) {
-                setStep(step + 1);
-                if (step + 1 === slides.length - 1) setShowConfetti(true);
-            }
-        } else {
-            // Prev
-            if (step > 0) {
-                setStep(step - 1);
-                setShowConfetti(false);
-            }
-        }
-    };
-
-
 
     const slides = [
         // Slide 0: Intro (Spy Theme)
@@ -1165,9 +487,6 @@ const LeaveWrapped = ({ open, onClose }) => {
         }
     ];
 
-
-
-
     const currentSlide = slides[step];
     const currentStyle = bgStyles[step] || bgStyles[0];
 
@@ -1267,5 +586,3 @@ const LeaveWrapped = ({ open, onClose }) => {
 };
 
 export default LeaveWrapped;
-
-

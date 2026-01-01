@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { AppContext } from "../context/AppContext";
-import { Typography } from "@mui/material";
+import { Typography, Box } from "@mui/material";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { format } from "date-fns";
 
@@ -20,147 +20,61 @@ export default function DonutChartOnly({ startMonth, endMonth, year }) {
   }));
 
   return (
-    <>
+    <Box sx={{ height: '100%', width: '100%', minHeight: 350, display: 'flex', flexDirection: 'column' }}>
       <Typography
         sx={{
           fontWeight: 900,
-          fontSize: '2.2rem',
+          fontSize: '1.4rem',
           fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif',
-          background: 'linear-gradient(90deg, #7c4dff 0%, #b388ff 100%)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          textAlign: 'center',
-          letterSpacing: 1,
-          textShadow: '0 2px 12px #b388ff33',
-          mb: 2
+          color: '#5e35b1',
+          letterSpacing: 0.5,
+          marginBottom: 2,
+          textAlign: 'left'
         }}
       >
-        Total Leaves - {startMonth === endMonth ? format(new Date(year, startMonth), "MMMM") : `${format(new Date(year, startMonth), "MMM")} - ${format(new Date(year, endMonth), "MMM")}`}
+        Total Leaves ({startMonth === endMonth ? format(new Date(year, startMonth), "MMM") : `${format(new Date(year, startMonth), "MMM")} - ${format(new Date(year, endMonth), "MMM")}`})
       </Typography>
-      <ResponsiveContainer width="100%" height={420}>
-        <PieChart>
-          <Pie
-            data={donutData}
-            dataKey="value"
-            nameKey="name"
-            cx="50%"
-            cy="50%"
-            innerRadius={110}
-            outerRadius={155}
-            isAnimationActive={false}
-          >
-            {donutData.map((entry, idx) => (
-              <Cell key={`cell-${idx}`} fill={COLORS[idx]} />
-            ))}
-          </Pie>
-          {/* Centered Text Inside Donut */}
-          <text
-            x="50%"
-            y="48%"
-            textAnchor="middle"
-            dominantBaseline="middle"
-            fontFamily="Poppins, Inter, Segoe UI, Arial, sans-serif"
-            fontSize="1.25rem"
-            fontWeight="800"
-            letterSpacing="0.5px"
-            style={{ textShadow: '0 1px 6px #b388ff22' }}
-            fill="#222"
-          >
-            <tspan x="50%" dy="0">Total Leave Taken</tspan>
-            <tspan x="50%" dy="1.5em" fontWeight="700" fontSize="24" fill="#1976d2">{monthLeaves.length}</tspan>
-          </text>
-          <Tooltip
-            contentStyle={{
-              fontFamily: 'Poppins, Inter, Arial, sans-serif',
-              fontSize: '1.08rem',
-              fontWeight: 700,
-              background: 'rgba(255, 255, 255, 0.95)',
-              borderRadius: 8,
-              boxShadow: '0 2px 12px rgba(0, 0, 0, 0.12)',
-              padding: '8px 16px',
-              color: '#333',
-            }}
-            labelStyle={{
-              fontWeight: 700,
-              fontSize: '1.08rem',
-              color: '#333',
-            }}
-            itemStyle={{
-              fontWeight: 700,
-              fontSize: '1.08rem',
-              color: '#333',
-            }}
-          />
-        </PieChart>
-      </ResponsiveContainer>
-      <div style={{ marginTop: 20, textAlign: 'center', fontFamily: 'Inter, Roboto, Arial, sans-serif', fontSize: 18, fontWeight: 600 }}>
-        {[{
-          color: '#66bb6a',
-          label: 'Planned Leaves',
-          value: donutData[0].value,
-          bg: 'rgba(102,187,106,0.12)'
-        }, {
-          color: '#ef5350',
-          label: 'Emergency Leaves',
-          value: donutData[1].value,
-          bg: 'rgba(239,83,80,0.12)'
-        }, {
-          color: '#fff176',
-          label: 'Sick Leaves',
-          value: donutData[2].value,
-          bg: 'rgba(255,241,118,0.20)'
-        }, {
-          color: '#8bc34a',
-          label: 'Half Day Leaves',
-          value: donutData[3].value,
-          bg: 'rgba(139,195,74,0.15)'
-        }].map((item, idx) => (
-          <div
-            key={item.label}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 16,
-              margin: '8px 0',
-              borderRadius: 24,
-              transition: 'background 0.2s',
-              cursor: 'pointer',
-              fontWeight: 700,
-              fontSize: 19,
-              background: 'transparent',
-            }}
-            onMouseOver={e => e.currentTarget.style.background = item.bg}
-            onMouseOut={e => e.currentTarget.style.background = 'transparent'}
-          >
-            <span style={{
-              fontSize: 24,
-              color: item.color,
-              background: item.bg,
-              borderRadius: 16,
-              padding: '4px 12px',
-              fontWeight: 900,
-              marginRight: 8,
-              display: 'inline-block',
-              minWidth: 30,
-              textAlign: 'center',
-            }}>●</span>
-            <span style={{ flex: 1, textAlign: 'left', fontWeight: 700, letterSpacing: 0.2 }}>{item.label}</span>
-            <span style={{
-              background: item.bg,
-              borderRadius: 16,
-              padding: '4px 12px',
-              fontWeight: 800,
-              fontSize: 20,
-              marginLeft: 8,
-              color: '#222',
-              minWidth: 32,
-              display: 'inline-block',
-              textAlign: 'center',
-            }}>{item.value}</span>
-          </div>
+
+      <Box sx={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={donutData}
+              dataKey="value"
+              nameKey="name"
+              cx="50%"
+              cy="50%"
+              innerRadius={80}
+              outerRadius={110}
+              isAnimationActive={true}
+            >
+              {donutData.map((entry, idx) => (
+                <Cell key={`cell-${idx}`} fill={COLORS[idx]} />
+              ))}
+            </Pie>
+            <Tooltip
+              contentStyle={{ borderRadius: 8, fontWeight: 700 }}
+            />
+            {/* Centered Text */}
+            <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" fill="#333">
+              <tspan x="50%" dy="-10" fontSize="14" fontWeight="600">Total</tspan>
+              <tspan x="50%" dy="24" fontSize="28" fontWeight="800" fill="#7c4dff">{monthLeaves.length}</tspan>
+            </text>
+          </PieChart>
+        </ResponsiveContainer>
+      </Box>
+
+      {/* Compact Legend */}
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'center', mt: 2 }}>
+        {donutData.map((item, idx) => (
+          <Box key={item.name} display="flex" alignItems="center" gap={1}>
+            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS[idx] }} />
+            <Typography variant="caption" fontWeight={700} color="#555">
+              {item.name}: {item.value}
+            </Typography>
+          </Box>
         ))}
-      </div>
-    </>
+      </Box>
+    </Box>
   );
 }

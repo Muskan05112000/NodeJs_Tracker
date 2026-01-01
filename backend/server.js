@@ -5,8 +5,10 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const path = require('path');
+const cron = require('node-cron');
+const { fork } = require('child_process');
 
-const app = express(); // <-- Initialize app before use
+const app = express();
 
 // CORS configuration to allow local dev and Netlify
 app.use(cors({
@@ -25,63 +27,7 @@ app.use((req, res, next) => {
   next();
 });
 
-const { sendWeeklyLeaveMail } = require('./sendMail');
-const authRouter = require('./auth');
-app.use('/api', authRouter);
-
-// (Optional) Serve static files from the React app build folder if you ever combine frontend+backend
-// app.use(express.static(path.join(__dirname, '../frontend/build')));
-
-// --- Employees ---
-app.get('/api/employees', async (req, res) => {
-  const employees = await Employee.find();
-  res.json(employees);
-});
-
-// --- Holidays ---
-app.get('/api/holidays', async (req, res) => {
-  const holidays = await Holiday.find();
-  res.json(holidays);
-});
-
-// Add new holiday
-app.post('/api/holidays', async (req, res) => {
-  try {
-    const { occasion, date, locations, national, country } = req.body;
-    if (!occasion || !date || !locations || locations.length === 0) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-    const holiday = new Holiday({ occasion, date, locations, national: !!national, country });
-    await holiday.save();
-    res.status(201).json(holiday);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Delete a holiday by ID
-app.delete('/api/holidays/:id', async (req, res) => {
-  try {
-    await Holiday.findByIdAndDelete(req.params.id);
-    res.status(204).end();
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// --- Leaves ---
-app.get('/api/leaves', async (req, res) => {
-  const leaves = await Leave.find();
-  res.json(leaves);
-});
-
-// --- Serve React frontend for all non-API routes ---
-
-
-// --- MongoDB Atlas Connection ---
-
-// Serve React frontend for all non-API routes
-
+// --- MongoDB Connection ---
 const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://Admin:Admin@cluster0.ge3ezsi.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 
 // Set buffer timeout to 5s to prevent operations from hanging indefinitely if DB is down
@@ -94,263 +40,21 @@ mongoose.connect(MONGO_URI, {
 }).then(() => console.log('MongoDB connected'))
   .catch((err) => console.error('MongoDB connection error:', err));
 
-// --- Schemas ---
-//const employeeSchema = new mongoose.Schema({
-//name: { type: String, required: true },
-//location: String,
-//team: String
-//});
-//const Employee = mongoose.model('Employee', employeeSchema);
-const Employee = require('./models/Employee');
-const Leave = require('./models/Leave'); // Import Leave model
 
-const holidaySchema = new mongoose.Schema({
-  occasion: String,
-  date: String, // ISO format
-  locations: [String],
-  national: Boolean,
-  country: String
-});
-const Holiday = mongoose.model('Holiday', holidaySchema);
+// --- Routes ---
+const authRouter = require('./auth');
+const employeeRouter = require('./routes/employees');
+const holidayRouter = require('./routes/holidays');
+const configRouter = require('./routes/config');
+const leaveRouter = require('./routes/leaves');
+const analysisRouter = require('./routes/analysis');
 
-// --- Analysis Routes ---
-const analysisController = require('./controllers/analysisController');
-app.get('/api/analysis/top-leavers', analysisController.getTopLeavers);
-app.get('/api/analysis/wrapped', analysisController.getLeaveWrapped);
-
-// --- Employees ---
-app.get('/api/employees', async (req, res) => {
-  const employees = await Employee.find();
-  res.json(employees);
-});
-
-const User = require('./models/User');
-const Config = require('./models/Config'); // Import Config model
-const bcrypt = require('bcryptjs');
-
-// --- Config / Admin Routes ---
-app.get('/api/config/wrapped-trigger', async (req, res) => {
-  try {
-    const config = await Config.findOne({ key: 'wrappedTriggerAt' });
-    console.log("Serving wrapped config:", config);
-    res.json({ value: config ? config.value : null });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.post('/api/config/trigger-wrapped', async (req, res) => {
-  try {
-    const now = Date.now().toString();
-    const config = await Config.findOneAndUpdate(
-      { key: 'wrappedTriggerAt' },
-      { value: now },
-      { upsert: true, new: true }
-    );
-    console.log("Updated wrapped config:", config);
-    res.json(config);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.post('/api/employees', async (req, res) => {
-  try {
-    console.log('Incoming /api/employees POST:', req.body);
-    // Validate associateId
-    if (!req.body.associateId) {
-      console.log('associateId missing');
-      return res.status(400).json({ error: 'associateId is required' });
-    }
-    // Build employee object
-    const empData = {
-      ...req.body,
-      associateId: Number(req.body.associateId),
-    };
-    console.log('Creating new Employee instance...');
-    const newEmp = new Employee(empData);
-    console.log('Saving new Employee to DB...');
-    await newEmp.save();
-    console.log('Employee saved:', newEmp);
-    // Also create a User credential for this employee
-    console.log('Hashing password for User credential...');
-    const passwordToSet = newEmp.role === 'Manager' || newEmp.role === 'Lead' ? 'Manager@2024' : 'Welcome@123';
-    const hashedPassword = await bcrypt.hash(passwordToSet, 10);
-    // Use associateId as the unique key for User
-    console.log('Creating User credential:', { associateId: newEmp.associateId, role: 'Employee' });
-    await User.create({ username: newEmp.name, associateId: newEmp.associateId, password: hashedPassword, role: newEmp.role });
-    console.log('User credential created');
-    res.status(201).json(newEmp);
-    console.log('Response sent to frontend');
-  } catch (err) {
-    console.error('Error in /api/employees POST:', err);
-    res.status(400).json({ error: err.message });
-  }
-});
-
-// --- Send Leave Email ---
-const { format, addDays, isSameDay } = require('date-fns');
-const { generateLeaveTrackerExcel } = require('./generateExcel');
-
-app.post('/api/download-leave-excel', async (req, res) => {
-  const { employees, leaves, weekStart, weekDays } = req.body;
-  if (!employees || !leaves || !weekStart) {
-    return res.status(400).json({ error: 'Missing employees, leaves, or weekStart' });
-  }
-  try {
-    console.log('Download Excel payload:', req.body);
-    const { fileName, filePath } = await generateLeaveTrackerExcel({ employees, leaves, weekStart, weekDays });
-    res.download(filePath, fileName, err => {
-      if (err) {
-        res.status(500).json({ error: 'Failed to download file' });
-      } else {
-        // Optionally delete file after sending
-        setTimeout(() => { try { require('fs').unlinkSync(filePath); } catch (e) { } }, 2000);
-      }
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-
-
-app.post('/api/send-leave-email', async (req, res) => {
-  console.log('Received send-leave-email body:', req.body);
-  const { to, subject, employees, leaves, weekStart, user, appPassword } = req.body;
-  if (!to || !subject || !employees || !leaves || !weekStart) {
-    return res.status(400).json({ error: 'Missing to, subject, employees, leaves, or weekStart' });
-  }
-  try {
-    // Build week days (Mon-Fri)
-    const weekDays = [];
-    const start = new Date(weekStart);
-    for (let i = 0; i < 5; i++) {
-      weekDays.push(addDays(start, i));
-    }
-    // Build HTML table
-    let html = `<h3>Leave update for this week</h3><table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;font-family:Arial,sans-serif;font-size:15px;min-width:400px;text-align:center;">
-      <thead><tr><th>Employee Name</th>`;
-    html += weekDays.map(d => `<th>${format(d, "dd MMM")}</th>`).join("");
-    html += `</tr></thead><tbody>`;
-    employees.forEach(emp => {
-      html += `<tr><td style='font-weight:600'>${emp.name}</td>`;
-      weekDays.forEach(day => {
-        const leave = leaves.find(l => l.employee === emp.name && isSameDay(new Date(l.date), day));
-        let code = "";
-        if (leave) {
-          if (leave.type === "Planned") code = "PL";
-          else if (leave.type === "Emergency") code = "EL";
-          else if (leave.type === "Sick") code = "SL";
-        }
-        html += `<td>${code}</td>`;
-      });
-      html += `</tr>`;
-    });
-    html += `</tbody></table>`;
-    // Support dynamic user/appPassword from frontend
-    const user = req.body.user || req.body.mailTo || to;
-    const appPassword = req.body.appPassword;
-    await sendWeeklyLeaveMail({ to, subject, html, user, appPassword });
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.put('/api/employees/:name', async (req, res) => {
-  try {
-    const { name, associateId, location, team, oldAssociateId } = req.body;
-    // Update employee
-    const updated = await Employee.findOneAndUpdate(
-      { name: req.params.name },
-      { name, associateId, location, team },
-      { new: true }
-    );
-    // Update user as well
-    const userQuery = oldAssociateId ? { associateId: oldAssociateId } : { associateId };
-    console.log('Updating User:', userQuery, { username: name, associateId });
-    await User.findOneAndUpdate(
-      userQuery,
-      { username: name, associateId }
-    );
-    res.json(updated);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
-
-app.delete('/api/employees/:associateId', async (req, res) => {
-  const emp = await Employee.findOneAndDelete({ associateId: Number(req.params.associateId) });
-  if (emp) {
-    // Also delete the credential for this employee (by associateId)
-    await User.deleteOne({ associateId: emp.associateId });
-  }
-  res.status(204).end();
-});
-
-// --- Holidays ---
-app.get('/api/holidays', async (req, res) => {
-  const holidays = await Holiday.find();
-  res.json(holidays);
-});
-
-// --- Leaves ---
-app.get('/api/leaves', async (req, res) => {
-  const leaves = await Leave.find();
-  res.json(leaves);
-});
-
-app.post('/api/leaves', async (req, res) => {
-  try {
-    const newLeave = new Leave(req.body);
-    await newLeave.save();
-    res.status(201).json(newLeave);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
-
-app.put('/api/leaves/:id', async (req, res) => {
-  try {
-    const updated = await Leave.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    res.json(updated);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
-
-// Revoke leave (soft delete)
-app.delete('/api/leaves/:id', async (req, res) => {
-  try {
-    const deleted = await Leave.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ error: 'Leave not found' });
-    res.status(204).end();
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
-
-app.put('/api/leaves/:id/revoke', async (req, res) => {
-  try {
-    const leave = await Leave.findById(req.params.id);
-    if (!leave) return res.status(404).json({ error: 'Leave not found' });
-    // Prevent revocation if leave date is in the past
-    const today = new Date();
-    const leaveDate = new Date(leave.date);
-    if (leaveDate < today.setHours(0, 0, 0, 0)) {
-      return res.status(400).json({ error: 'Cannot revoke a leave that is in the past.' });
-    }
-    leave.status = 'Revoked';
-    leave.revokedAt = new Date();
-    leave.revokedBy = req.body.revokedBy || 'self';
-    leave.revocationReason = req.body.revocationReason || '';
-    await leave.save();
-    res.json({ success: true, leave });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
+app.use('/api', authRouter);
+app.use('/api/employees', employeeRouter);
+app.use('/api/holidays', holidayRouter);
+app.use('/api/config', configRouter);
+app.use('/api', leaveRouter); // Mounted at /api because leaves.js handles /leaves and /download-leave-excel
+app.use('/api/analysis', analysisRouter);
 
 // --- Serve React frontend for all non-API routes (Catch-All) ---
 // Must be last!
@@ -361,8 +65,6 @@ app.get('*', (req, res) => {
 });
 
 const port = process.env.PORT || 4000;
-const cron = require('node-cron');
-const { fork } = require('child_process');
 
 // Schedule Daily Backup at Midnight (00:00)
 cron.schedule('0 0 * * *', () => {
@@ -381,5 +83,3 @@ cron.schedule('0 0 * * *', () => {
 app.listen(port, '0.0.0.0', () => {
   console.log(`Backend server running on http://localhost:${port}`);
 });
-
-

@@ -11,6 +11,8 @@ import { AppProvider } from "./context/AppContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import Login from "./components/Login";
 import LeaderboardPage from "./components/LeaderboardPage";
+import { AnimatePresence } from 'framer-motion';
+import PageTransition from "./components/PageTransition";
 
 const roleOptions = ['Employee', 'Manager', 'Lead'];
 
@@ -54,6 +56,7 @@ function ProtectedRoute({ element, allowedRoles }) {
 
 const AppRoutes = () => {
   const { user, logout } = useAuth();
+  const location = useLocation();
   const [showLogoutMsg, setShowLogoutMsg] = React.useState(false);
   const handleLogout = () => {
     logout();
@@ -69,15 +72,17 @@ const AppRoutes = () => {
         <button onClick={handleLogout} style={{ fontSize: 15, borderRadius: 8, fontWeight: 700, background: '#ede7f6', color: '#6a479c', border: '1.5px solid #b39ddb', padding: '6px 18px', cursor: 'pointer' }}>Logout</button>
       </div>
       <div id="main-content" style={{ marginLeft: 'var(--sidebar-width, 60px)', marginTop: 72, fontFamily: 'Inter, Segoe UI, Roboto, Arial, sans-serif', background: 'var(--primary-gradient)', minHeight: '100vh', transition: 'margin-left 0.3s cubic-bezier(0.4,0,0.2,1)' }}>
-        <Routes>
-          <Route path="/" element={<ApplyLeave />} />
-          <Route path="/users" element={<ProtectedRoute element={<Users />} allowedRoles={['Manager', 'Lead']} userRole={user.role} />} />
-          <Route path="/analysis" element={<ProtectedRoute element={<Analysis />} allowedRoles={['Manager', 'Lead']} userRole={user.role} />} />
-          <Route path="/holiday-update" element={<HolidayUpdate />} />
-          <Route path="/leaderboard" element={<LeaderboardPage />} />
-          {/* Redirect any unknown route to ApplyLeave */}
-          <Route path="*" element={<ApplyLeave />} />
-        </Routes>
+        <AnimatePresence mode="wait">
+          <Routes location={location} key={location.pathname}>
+            <Route path="/" element={<PageTransition><ApplyLeave /></PageTransition>} />
+            <Route path="/users" element={<PageTransition><ProtectedRoute element={<Users />} allowedRoles={['Manager', 'Lead']} userRole={user.role} /></PageTransition>} />
+            <Route path="/analysis" element={<PageTransition><ProtectedRoute element={<Analysis />} allowedRoles={['Manager', 'Lead']} userRole={user.role} /></PageTransition>} />
+            <Route path="/holiday-update" element={<PageTransition><HolidayUpdate /></PageTransition>} />
+            <Route path="/leaderboard" element={<PageTransition><LeaderboardPage /></PageTransition>} />
+            {/* Redirect any unknown route to ApplyLeave */}
+            <Route path="*" element={<PageTransition><ApplyLeave /></PageTransition>} />
+          </Routes>
+        </AnimatePresence>
       </div>
     </>
   );
