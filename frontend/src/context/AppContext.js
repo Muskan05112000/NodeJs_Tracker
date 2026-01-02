@@ -13,7 +13,7 @@ export const AppProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   // Get user from AuthContext to react to login/logout
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   // Fetch all data when user/token changes
   useEffect(() => {
@@ -38,14 +38,29 @@ export const AppProvider = ({ children }) => {
           fetch(`${API_BASE}/leaves`, { headers })
         ]);
 
-        if (empRes.ok) setEmployees(await empRes.json());
-        else console.error("Failed to fetch employees");
+        // Helper to safely handle response
+        const handleResponse = async (res) => {
+          if (res.status === 401) {
+            console.warn("Session expired (401). Logging out...");
+            logout();
+            return null;
+          }
+          if (res.ok) {
+            const data = await res.json();
+            return Array.isArray(data) ? data : [];
+          }
+          console.error(`Fetch failed: ${res.statusText}`);
+          return [];
+        };
 
-        if (holRes.ok) setHolidays(await holRes.json());
-        else console.error("Failed to fetch holidays");
+        const empData = await handleResponse(empRes);
+        if (empData !== null) setEmployees(empData);
 
-        if (leaveRes.ok) setLeaves(await leaveRes.json());
-        else console.error("Failed to fetch leaves");
+        const holData = await handleResponse(holRes);
+        if (holData !== null) setHolidays(holData);
+
+        const leaveData = await handleResponse(leaveRes);
+        if (leaveData !== null) setLeaves(leaveData);
 
       } catch (err) {
         console.error("Error fetching data:", err);
