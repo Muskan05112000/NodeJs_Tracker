@@ -8,9 +8,14 @@ const path = require('path');
 const cron = require('node-cron');
 const { fork } = require('child_process');
 
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const app = express();
 
-// CORS configuration to allow local dev and Netlify
+// Security Headers
+app.use(helmet());
+
+// CORS configuration (Adjusted for Helmet compatibility if needed)
 app.use(cors({
   origin: [
     'http://localhost:3000', // local dev
@@ -19,7 +24,27 @@ app.use(cors({
   credentials: true
 }));
 
+// Rate Limiting
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Limit each IP to 10 login requests per windowMs
+  message: { error: 'Too many login attempts, please try again after 15 minutes' },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 app.use(express.json());
+
+// Apply rate limits
+app.use('/api/login', loginLimiter);
+app.use('/api', apiLimiter);
 
 // Log all requests and bodies for debugging
 app.use((req, res, next) => {
@@ -48,8 +73,13 @@ const holidayRouter = require('./routes/holidays');
 const configRouter = require('./routes/config');
 const leaveRouter = require('./routes/leaves');
 const analysisRouter = require('./routes/analysis');
+const verifyToken = require('./middleware/authMiddleware');
 
-app.use('/api', authRouter);
+// Public Routes
+app.use('/api', authRouter); // Login is public
+
+// Protected Routes
+app.use('/api', verifyToken); // Protect all subsequent /api routes
 app.use('/api/employees', employeeRouter);
 app.use('/api/holidays', holidayRouter);
 app.use('/api/config', configRouter);

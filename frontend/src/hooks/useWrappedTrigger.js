@@ -11,8 +11,13 @@ export const useWrappedTrigger = (user) => {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
 
+                const token = sessionStorage.getItem('token');
                 const res = await fetch(`${process.env.REACT_APP_API_URL || '/api'}/config/wrapped-trigger?t=${Date.now()}`, {
-                    headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' },
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache',
+                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                    },
                     signal: controller.signal
                 });
                 clearTimeout(timeoutId);

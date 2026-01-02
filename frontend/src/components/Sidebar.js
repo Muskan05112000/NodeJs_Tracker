@@ -13,6 +13,22 @@ const Sidebar = ({ userRole }) => {
   const [hovered, setHovered] = useState(false);
   const [wrappedOpen, setWrappedOpen] = useState(false);
 
+  // Check if current date is between Dec 10 and Jan 2
+  const isWrappedEnabled = () => {
+    const now = new Date();
+    const month = now.getMonth(); // 0 = Jan, 11 = Dec
+    const date = now.getDate();
+
+    // Dec 10 - Dec 31 OR Jan 1 - Jan 1
+    if ((month === 11 && date >= 10) || (month === 0 && date <= 1)) {
+      return true;
+    }
+    return false;
+  };
+
+  const showWrapped = isWrappedEnabled();
+
+
   return (
     <Box
       className="sidebar-container"
@@ -133,17 +149,20 @@ const Sidebar = ({ userRole }) => {
           </ListItemButton>
         )}
 
-        <ListItemButton
-          onClick={() => setWrappedOpen(true)}
-          className="sidebar-nav-item"
-        >
-          <ListItemIcon sx={{ color: 'inherit', minWidth: 36 }}>
-            <span style={{ fontSize: 20 }}>🎁</span>
-          </ListItemIcon>
-          {hovered && (
-            <ListItemText primary={<span className="sidebar-nav-text">My Wrapped</span>} />
-          )}
-        </ListItemButton>
+
+        {showWrapped && (
+          <ListItemButton
+            onClick={() => setWrappedOpen(true)}
+            className="sidebar-nav-item"
+          >
+            <ListItemIcon sx={{ color: 'inherit', minWidth: 36 }}>
+              <span style={{ fontSize: 20 }}>🎁</span>
+            </ListItemIcon>
+            {hovered && (
+              <ListItemText primary={<span className="sidebar-nav-text">My Wrapped</span>} />
+            )}
+          </ListItemButton>
+        )}
       </List>
       <LeaveWrapped open={wrappedOpen} onClose={() => setWrappedOpen(false)} />
     </Box>

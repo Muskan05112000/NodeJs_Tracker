@@ -11,8 +11,8 @@ const TopBar = () => {
   const employee = employees.find(emp => String(emp.associateId) === String(user?.associateId));
   const displayName = employee ? employee.name : '';
   return (
-    <AppBar 
-      position="fixed" 
+    <AppBar
+      position="fixed"
       sx={{
         top: 0,
         left: 'var(--sidebar-width, 60px)',
@@ -29,72 +29,78 @@ const TopBar = () => {
       }}
     >
       <Toolbar sx={{ minHeight: 72, position: 'relative', px: 4, display: 'flex', alignItems: 'center' }}>
-  {/* Centered Heading */}
-  <Typography
-    variant="h6"
-    fontWeight={800}
-    sx={{
-      position: 'absolute',
-      left: '50%',
-      transform: 'translateX(-50%)',
-      letterSpacing: 0.5,
-      color: '#fff',
-      fontFamily: 'Inter, Segoe UI, Roboto, Arial, sans-serif',
-      textAlign: 'center',
-      width: { xs: '60%', sm: 'auto' },
-      whiteSpace: 'nowrap',
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      pointerEvents: 'none', // So buttons remain clickable
-      userSelect: 'none'
-    }}
-  >
-    Leave Tracker
-  </Typography>
-  {/* Right Side Content */}
-  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, ml: 'auto' }}>
-    {user && (
-      <Box sx={{
-        fontWeight: 800,
-        fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif',
-        fontSize: 18,
-        letterSpacing: 0.3,
-        color: '#fff',
-        background: 'linear-gradient(90deg, #7c4dff 0%, #b388ff 100%)',
-        borderRadius: 3,
-        px: 3,
-        py: 1,
-        mr: 2,
-        boxShadow: '0 2px 8px 0 #b388ff33',
-        textShadow: '0 2px 8px #b388ff22',
-        display: 'flex',
-        alignItems: 'center',
-        minWidth: 0
-      }}>
-        {displayName}
-      </Box>
-    )}
-    <Button
-      color="inherit"
-      sx={{
-        fontSize: 18,
-        borderRadius: 3,
-        px: 3,
-        py: 1,
-        boxShadow: '0 2px 8px 0 #b388ff33',
-        letterSpacing: 0.3,
-        textShadow: '0 2px 8px #b388ff22',
-        minWidth: 0,
-        transition: 'background 0.18s, box-shadow 0.18s, color 0.18s',
-        '&:hover': { background: 'linear-gradient(90deg, #b388ff 0%, #7c4dff 100%)', color: '#fff' },
-        '&:active': { background: 'linear-gradient(90deg, #7c4dff 0%, #b388ff 100%)', color: '#fff' }
-      }}
-      onClick={logout}
-    >
-      Logout
-    </Button>
-  </Box>
-</Toolbar>
+        {/* Centered Heading */}
+        <Typography
+          variant="h6"
+          fontWeight={800}
+          sx={{
+            position: 'absolute',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            letterSpacing: 0.5,
+            color: '#fff',
+            fontFamily: 'Inter, Segoe UI, Roboto, Arial, sans-serif',
+            textAlign: 'center',
+            width: { xs: '60%', sm: 'auto' },
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            pointerEvents: 'none', // So buttons remain clickable
+            userSelect: 'none'
+          }}
+        >
+          Leave Tracker
+        </Typography>
+        {/* Right Side Content */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, ml: 'auto' }}>
+          {user && (
+            <Box sx={{
+              fontWeight: 800,
+              fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif',
+              fontSize: 18,
+              letterSpacing: 0.3,
+              color: '#fff',
+              background: 'linear-gradient(90deg, #7c4dff 0%, #b388ff 100%)',
+              borderRadius: 3,
+              px: 3,
+              py: 1,
+              mr: 2,
+              boxShadow: '0 2px 8px 0 #b388ff33',
+              textShadow: '0 2px 8px #b388ff22',
+              display: 'flex',
+              alignItems: 'center',
+              minWidth: 0
+            }}>
+              {displayName}
+            </Box>
+          )}
+          {/* LOGOUT BUTTON - Re-added with 'White' styling */}
+          <Button
+            onClick={logout}
+            sx={{
+              fontSize: 15,
+              borderRadius: 3,
+              fontWeight: 700,
+              background: '#ede7f6', // White/Light Purple as requested
+              color: '#6a479c',
+              border: '1.5px solid #b39ddb',
+              padding: '6px 18px',
+              textTransform: 'none',
+              minWidth: 0,
+              boxShadow: '0 2px 8px 0 rgba(179, 157, 219, 0.4)',
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                background: '#fff',
+                borderColor: '#7c4dff',
+                transform: 'translateY(-1px)',
+                boxShadow: '0 4px 12px 0 rgba(124, 77, 255, 0.2)'
+              }
+            }}
+          >
+            Logout
+          </Button>
+        </Box>
+      </Toolbar>
     </AppBar>
   );
 };

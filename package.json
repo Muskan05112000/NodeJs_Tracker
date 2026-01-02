@@ -1,0 +1,36 @@
+{
+  "name": "nodejs_tracker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "backend/**/*.js": [
+      "cd backend && npm run lint -- --fix",
+      "cd backend && npx prettier --write"
+    ],
+    "frontend/src/**/*.js": [
+      "cd frontend && npm run lint -- --fix",
+      "cd frontend && npx prettier --write"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Muskan05112000/NodeJs_Tracker.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Muskan05112000/NodeJs_Tracker/issues"
+  },
+  "homepage": "https://github.com/Muskan05112000/NodeJs_Tracker#readme",
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7"
+  }
+}

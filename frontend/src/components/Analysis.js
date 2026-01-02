@@ -63,9 +63,13 @@ const Analysis = () => {
       weekStart: weekStart.toISOString()
     };
 
+    const token = sessionStorage.getItem('token');
     fetch(`${process.env.REACT_APP_API_URL || '/api'}/send-leave-email`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      },
       body: JSON.stringify(payload)
     })
       .then(res => res.json())
@@ -107,9 +111,13 @@ const Analysis = () => {
       weekStart: weekStart.toISOString(),
       weekDays: weekDays.map(d => d.toISOString())
     };
+    const token = sessionStorage.getItem('token');
     const response = await fetch(`${process.env.REACT_APP_API_URL || '/api'}/download-leave-excel`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      },
       body: JSON.stringify(payload)
     });
     if (!response.ok) {

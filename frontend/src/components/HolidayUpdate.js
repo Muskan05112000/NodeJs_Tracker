@@ -107,9 +107,13 @@ const HolidayUpdate = () => {
     };
     setIsSubmitting(true);
     try {
+      const token = sessionStorage.getItem('token');
       const res = await fetch(`${API_BASE}/holidays`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
         body: JSON.stringify(newHoliday)
       });
       if (!res.ok) throw new Error((await res.json()).error || "Failed to add holiday");
@@ -377,7 +381,11 @@ const HolidayUpdate = () => {
               onClick={async () => {
                 setIsSubmitting(true);
                 try {
-                  const res = await fetch(`${API_BASE}/holidays/${selectedHoliday._id}`, { method: 'DELETE' });
+                  const token = sessionStorage.getItem('token');
+                  const res = await fetch(`${API_BASE}/holidays/${selectedHoliday._id}`, {
+                    method: 'DELETE',
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                  });
                   if (!res.ok) throw new Error((await res.json()).error || 'Failed to revoke holiday');
                   setHolidays(prev => prev.filter(h => h._id !== selectedHoliday._id));
                   setOpen(false);

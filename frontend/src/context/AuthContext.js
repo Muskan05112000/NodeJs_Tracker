@@ -37,7 +37,18 @@ export function AuthProvider({ children }) {
         return false;
       }
       const data = await res.json();
-      const userObj = { associateId: data.associateId, role: data.role, username: data.username };
+      // Store token in session storage (or handle via user object if included there)
+      if (data.token) {
+        sessionStorage.setItem('token', data.token);
+      }
+
+      const userObj = {
+        associateId: data.associateId,
+        role: data.role,
+        username: data.username,
+        token: data.token
+      };
+
       setUser(userObj);
       setLoading(false);
       return true;
@@ -48,7 +59,10 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const logout = () => setUser(null);
+  const logout = () => {
+    setUser(null);
+    sessionStorage.removeItem('token');
+  };
 
   return (
     <AuthContext.Provider value={{ user, login, logout, loading, error }}>

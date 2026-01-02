@@ -1,6 +1,7 @@
 const express = require('express');
 const User = require('./models/User');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const router = express.Router();
 
 // POST /api/login
@@ -30,7 +31,25 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid Username or password' });
     }
     console.log('Login successful for:', username);
-    res.json({ associateId: user.associateId, role: user.role, username: user.username });
+
+    // Generate JWT Token
+    const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key_change_this_prod';
+    const token = jwt.sign(
+      {
+        associateId: user.associateId,
+        role: user.role,
+        username: user.username
+      },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    res.json({
+      associateId: user.associateId,
+      role: user.role,
+      username: user.username,
+      token
+    });
   } catch (err) {
     console.error('Error during login:', err);
     res.status(500).json({ error: 'Server error' });

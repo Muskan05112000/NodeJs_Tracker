@@ -37,7 +37,11 @@ function Calendar({
     const handleSendTrigger = async () => {
         handleConfirmClose();
         try {
-            await fetch(`${process.env.REACT_APP_API_URL || '/api'}/config/trigger-wrapped`, { method: 'POST' });
+            const token = sessionStorage.getItem('token');
+            await fetch(`${process.env.REACT_APP_API_URL || '/api'}/config/trigger-wrapped`, {
+                method: 'POST',
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            });
             setSnackbar({ open: true, message: '✉️ Letters Sent! Everyone will see "Wrapped" on their next refresh.', severity: 'success' });
         } catch (e) {
             setSnackbar({ open: true, message: 'Failed to send trigger. Please try again.', severity: 'error' });

@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect } from "react";
+import { useAuth } from "./AuthContext";
 
 export const AppContext = createContext();
 // It has been changed
@@ -11,28 +12,60 @@ export const AppProvider = ({ children }) => {
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch all data on mount
+  // Get user from AuthContext to react to login/logout
+  const { user } = useAuth();
+
+  // Fetch all data when user/token changes
   useEffect(() => {
     const fetchAll = async () => {
       setLoading(true);
-      const [empRes, holRes, leaveRes] = await Promise.all([
-        fetch(`${API_BASE}/employees`),
-        fetch(`${API_BASE}/holidays`),
-        fetch(`${API_BASE}/leaves`)
-      ]);
-      setEmployees(await empRes.json());
-      setHolidays(await holRes.json());
-      setLeaves(await leaveRes.json());
-      setLoading(false);
+      try {
+        const token = sessionStorage.getItem('token');
+        // If no token, we can't fetch protected data.
+        if (!token) {
+          setEmployees([]);
+          setHolidays([]);
+          setLeaves([]);
+          setLoading(false);
+          return;
+        }
+
+        const headers = { 'Authorization': `Bearer ${token}` };
+
+        const [empRes, holRes, leaveRes] = await Promise.all([
+          fetch(`${API_BASE}/employees`, { headers }),
+          fetch(`${API_BASE}/holidays`, { headers }),
+          fetch(`${API_BASE}/leaves`, { headers })
+        ]);
+
+        if (empRes.ok) setEmployees(await empRes.json());
+        else console.error("Failed to fetch employees");
+
+        if (holRes.ok) setHolidays(await holRes.json());
+        else console.error("Failed to fetch holidays");
+
+        if (leaveRes.ok) setLeaves(await leaveRes.json());
+        else console.error("Failed to fetch leaves");
+
+      } catch (err) {
+        console.error("Error fetching data:", err);
+      } finally {
+        setLoading(false);
+      }
     };
+
     fetchAll();
-  }, []);
+  }, [user]); // Re-run when user auth state changes
 
   // --- Employees CRUD ---
   const addEmployee = async (employee) => {
+    const token = sessionStorage.getItem('token');
     const res = await fetch(`${API_BASE}/employees`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      },
       body: JSON.stringify(employee)
     });
     if (res.ok) {
@@ -43,9 +76,13 @@ export const AppProvider = ({ children }) => {
 
   const editEmployee = async (oldName, updated, oldAssociateId) => {
     const payload = { ...updated, oldAssociateId };
+    const token = sessionStorage.getItem('token');
     const res = await fetch(`${API_BASE}/employees/${encodeURIComponent(oldName)}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      },
       body: JSON.stringify(payload)
     });
     if (res.ok) {
@@ -55,8 +92,11 @@ export const AppProvider = ({ children }) => {
   };
 
   const deleteEmployee = async (associateId) => {
+    const token = sessionStorage.getItem('token');
     const res = await fetch(`${API_BASE}/employees/${encodeURIComponent(associateId)}`, {
-      method: "DELETE" });
+      method: "DELETE",
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+    });
     if (res.ok || res.status === 204) {
       setEmployees((prev) => prev.filter(emp => String(emp.associateId) !== String(associateId)));
     }
@@ -64,18 +104,29 @@ export const AppProvider = ({ children }) => {
 
   // --- Leaves CRUD ---
   const deleteLeave = async (id) => {
-    const res = await fetch(`${API_BASE}/leaves/${id}`, { method: 'DELETE' });
+    const token = sessionStorage.getItem('token');
+    const res = await fetch(`${API_BASE}/leaves/${id}`, {
+      method: 'DELETE',
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+    });
     if (res.ok) await fetchLeaves();
   };
   const fetchLeaves = async () => {
-    const res = await fetch(`${API_BASE}/leaves`);
+    const token = sessionStorage.getItem('token');
+    const res = await fetch(`${API_BASE}/leaves`, {
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+    });
     if (res.ok) setLeaves(await res.json());
   };
 
   const addLeave = async (leave) => {
+    const token = sessionStorage.getItem('token');
     const res = await fetch(`${API_BASE}/leaves`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      },
       body: JSON.stringify(leave)
     });
     if (res.ok) {
@@ -84,9 +135,13 @@ export const AppProvider = ({ children }) => {
   };
 
   const editLeave = async (id, updated) => {
+    const token = sessionStorage.getItem('token');
     const res = await fetch(`${API_BASE}/leaves/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      },
       body: JSON.stringify(updated)
     });
     if (res.ok) {
@@ -95,9 +150,13 @@ export const AppProvider = ({ children }) => {
   };
 
   const revokeLeave = async (id, revocationReason = "", revokedBy = "") => {
+    const token = sessionStorage.getItem('token');
     const res = await fetch(`${API_BASE}/leaves/${id}/revoke`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      },
       body: JSON.stringify({ revocationReason, revokedBy }),
     });
     if (res.ok) {
@@ -113,7 +172,7 @@ export const AppProvider = ({ children }) => {
       leaves, setLeaves, addLeave, editLeave, revokeLeave, deleteLeave,
       holidays, setHolidays,
       loading,
-      activeLeaves: leaves.filter(l => l.status !== "Revoked")
+      activeLeaves: Array.isArray(leaves) ? leaves.filter(l => l.status !== "Revoked") : []
     }}>
       {children}
     </AppContext.Provider>

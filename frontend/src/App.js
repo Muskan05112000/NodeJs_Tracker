@@ -68,9 +68,6 @@ const AppRoutes = () => {
     <>
       <Sidebar userRole={user.role} />
       <TopBar />
-      <div style={{ position: 'fixed', top: 16, right: 32, zIndex: 3000 }}>
-        <button onClick={handleLogout} style={{ fontSize: 15, borderRadius: 8, fontWeight: 700, background: '#ede7f6', color: '#6a479c', border: '1.5px solid #b39ddb', padding: '6px 18px', cursor: 'pointer' }}>Logout</button>
-      </div>
       <div id="main-content" style={{ marginLeft: 'var(--sidebar-width, 60px)', marginTop: 72, fontFamily: 'Inter, Segoe UI, Roboto, Arial, sans-serif', background: 'var(--primary-gradient)', minHeight: '100vh', transition: 'margin-left 0.3s cubic-bezier(0.4,0,0.2,1)' }}>
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
@@ -89,13 +86,13 @@ const AppRoutes = () => {
 };
 
 const App = () => (
-  <AppProvider>
-    <AuthProvider>
+  <AuthProvider>
+    <AppProvider>
       <Router>
         <AppRoutes />
       </Router>
-    </AuthProvider>
-  </AppProvider>
+    </AppProvider>
+  </AuthProvider>
 );
 
 
