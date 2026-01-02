@@ -176,7 +176,45 @@ export const AppProvider = ({ children }) => {
     });
     if (res.ok) {
       await fetchLeaves();
+      return await res.json();
     }
+  };
+
+  const approveRevocation = async (id) => {
+    const token = sessionStorage.getItem('token');
+    const res = await fetch(`${API_BASE}/leaves/${id}/approve-revocation`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      }
+    });
+    if (res.ok) {
+      await fetchLeaves();
+    }
+  };
+
+  const declineRevocation = async (id, reason = "") => {
+    const token = sessionStorage.getItem('token');
+    const res = await fetch(`${API_BASE}/leaves/${id}/decline-revocation`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify({ reason })
+    });
+    if (res.ok) {
+      await fetchLeaves();
+    }
+  };
+
+  const fetchPendingRevocations = async () => {
+    const token = sessionStorage.getItem('token');
+    const res = await fetch(`${API_BASE}/leaves/pending-revocation`, {
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+    });
+    return res.ok ? await res.json() : [];
   };
 
   // Holidays are read-only for now; if you want to add CRUD, let me know
@@ -185,6 +223,7 @@ export const AppProvider = ({ children }) => {
     <AppContext.Provider value={{
       employees, setEmployees, addEmployee, editEmployee, deleteEmployee,
       leaves, setLeaves, addLeave, editLeave, revokeLeave, deleteLeave,
+      approveRevocation, declineRevocation, fetchPendingRevocations,
       holidays, setHolidays,
       loading,
       activeLeaves: Array.isArray(leaves) ? leaves.filter(l => l.status !== "Revoked") : []

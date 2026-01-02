@@ -1,10 +1,10 @@
-import React, { useContext, useMemo, useState } from "react";
+import React, { useContext, useState } from "react";
 import { AppContext } from "../context/AppContext";
 import { format } from "date-fns";
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Dialog, DialogTitle, DialogContent, DialogActions, Box, Typography, Select, MenuItem } from "@mui/material";
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Dialog, DialogTitle, DialogContent, DialogActions, Box, Typography } from "@mui/material";
 
 function AnalysisTable({ year, startMonth, endMonth, selectedEmployee }) {
-  const { employees, leaves, activeLeaves } = useContext(AppContext);
+  const { employees, activeLeaves } = useContext(AppContext);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   // const [selectedEmployee, setSelectedEmployee] = useState('All'); // Removed local state

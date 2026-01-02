@@ -1,8 +1,9 @@
 import React, { useContext } from "react";
-import { AppBar, Toolbar, Typography, Avatar, Box, IconButton, Badge, Button } from "@mui/material";
-import NotificationsIcon from '@mui/icons-material/Notifications';
+import { AppBar, Toolbar, Typography, Box, Button } from "@mui/material";
+// import NotificationsIcon from '@mui/icons-material/Notifications';
 import { useAuth } from '../context/AuthContext';
 import { AppContext } from '../context/AppContext';
+import NotificationPanel from './NotificationPanel';
 
 const TopBar = () => {
   const { user, logout } = useAuth();
@@ -74,6 +75,9 @@ const TopBar = () => {
               {displayName}
             </Box>
           )}
+
+          <NotificationPanel />
+
           {/* LOGOUT BUTTON - Re-added with 'White' styling */}
           <Button
             onClick={logout}
@@ -101,7 +105,7 @@ const TopBar = () => {
           </Button>
         </Box>
       </Toolbar>
-    </AppBar>
+    </AppBar >
   );
 };
 

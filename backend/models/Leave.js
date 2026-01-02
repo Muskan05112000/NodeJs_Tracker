@@ -7,7 +7,12 @@ const leaveSchema = new mongoose.Schema({
     status: { type: String, enum: ['Active', 'Revoked'], default: 'Active' },
     revokedAt: Date,
     revokedBy: String,
-    revocationReason: String
+    revocationReason: String,
+    revocationRequest: {
+        isRequested: { type: Boolean, default: false },
+        reason: { type: String, default: '' },
+        requestedAt: { type: Date }
+    }
 });
 
 const Leave = mongoose.model('Leave', leaveSchema);

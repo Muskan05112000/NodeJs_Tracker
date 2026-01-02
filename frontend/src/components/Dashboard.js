@@ -32,7 +32,7 @@ const Dashboard = () => (
   <Box sx={{ px: 4, py: 4, bgcolor: '#f6f8fa', minHeight: '100vh', fontFamily: 'Inter, Segoe UI, Roboto, Arial, sans-serif' }}>
     <Typography variant="h4" fontWeight={700} mb={4} color="#222">Dashboard Overview</Typography>
     <Grid container spacing={3}>
-      {statCards.map((card, idx) => (
+      {statCards.map((card) => (
         <Grid item xs={12} md={4} key={card.label}>
           <Card sx={{
             borderRadius: 4,

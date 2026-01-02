@@ -1,8 +1,8 @@
 import React, { useContext, useMemo, useState } from 'react';
-import { Box, Typography, Avatar, Container, Grid, Paper, Tabs, Tab, Tooltip } from '@mui/material';
+import { Box, Typography, Avatar, Container, Paper, Tabs, Tab, Tooltip } from '@mui/material';
 import { AppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { format } from 'date-fns';
+// import { format } from 'date-fns';
 
 const LeaderboardPage = () => {
     const { leaves, employees } = useContext(AppContext);
@@ -51,7 +51,7 @@ const LeaderboardPage = () => {
             .sort((a, b) => b.count - a.count);
 
         const max = sorted.length > 0 ? sorted[0].count : 0;
-        return { sorted, max };
+        return { sorted, max, filteredLeaves };
     }, [leaves, employees, tab, currentMonth, currentYear]);
 
     // Badge Logic Helper
@@ -409,7 +409,8 @@ const LeaderboardPage = () => {
                                                 {displayList.map((user, index) => {
                                                     const isLeader = index === 0;
                                                     const gapToLeader = isLeader ? 0 : leaderboardData.max - user.count;
-                                                    const userBadges = getBadges(user.name, leaves);
+                                                    // Pass filtered leaves (Month/Year) so badges match the current view criteria
+                                                    const userBadges = getBadges(user.name, leaderboardData.filteredLeaves);
 
                                                     return (
                                                         <Box key={user.name} sx={{

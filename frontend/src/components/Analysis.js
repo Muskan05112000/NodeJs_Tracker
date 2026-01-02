@@ -1,5 +1,5 @@
 import React, { useState, useContext } from "react";
-import { Box, Button, Paper, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Snackbar, Alert, CircularProgress, Grid, Select, Typography, MenuItem } from "@mui/material";
+import { Box, Button, Paper, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Snackbar, Alert, CircularProgress, Select, Typography, MenuItem } from "@mui/material";
 import { startOfWeek } from "date-fns";
 import SendMailDialog from "./SendMailDialog";
 import AnalysisCharts from "./AnalysisCharts";
@@ -22,7 +22,7 @@ const Analysis = () => {
   const [mailAppPassword, setMailAppPassword] = useState("");
   const [mailError, setMailError] = useState(false);
   const [mailAppPasswordError, setMailAppPasswordError] = useState(false);
-  const [mailSuccess, setMailSuccess] = useState(false);
+  // const [mailSuccess, setMailSuccess] = useState(false);
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMsg, setAlertMsg] = useState('');
 
@@ -48,7 +48,7 @@ const Analysis = () => {
     setMailAppPasswordError(false);
 
     setSendMailOpen(false);
-    setMailSuccess(true);
+    // setMailSuccess(true);
 
     // --- Prepare data for backend-generated weekly leave table ---
     const today = new Date();
@@ -75,7 +75,7 @@ const Analysis = () => {
       .then(res => res.json())
       .then(data => {
         if (data.success) {
-          setMailSuccess(true);
+          // setMailSuccess(true);
         } else {
           setMailError(true);
         }

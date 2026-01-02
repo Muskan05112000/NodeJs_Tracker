@@ -4,7 +4,7 @@ import { Box } from '@mui/material';
 const ScratchCard = ({ children, width = 600, height = 300, coverText = "SCRATCH TO REVEAL MISSION", onScratchStart, onScratchEnd }) => {
     const canvasRef = useRef(null);
     const [isScratching, setIsScratching] = useState(false);
-    const [cleared, setCleared] = useState(false);
+    // const [cleared, setCleared] = useState(false);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -36,7 +36,7 @@ const ScratchCard = ({ children, width = 600, height = 300, coverText = "SCRATCH
     }, [width, height, coverText]);
 
     const scratch = (e) => {
-        if (cleared) return;
+        // if (cleared) return;
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
         const rect = canvas.getBoundingClientRect();
@@ -95,7 +95,7 @@ const ScratchCard = ({ children, width = 600, height = 300, coverText = "SCRATCH
                     cursor: 'crosshair',
                     borderRadius: '10px',
                     touchAction: 'none',
-                    pointerEvents: cleared ? 'none' : 'auto'
+                    pointerEvents: 'auto'
                 }}
             />
         </Box>

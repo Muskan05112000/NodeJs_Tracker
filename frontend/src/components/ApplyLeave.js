@@ -3,15 +3,14 @@ import { AppContext } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 import Calendar from "./Calendar";
 import LeaveModal from "./LeaveModal";
-import { Box, CircularProgress, Button } from "@mui/material";
-import { format } from "date-fns";
+import { Box, CircularProgress } from "@mui/material";
 import PromptDialog from "./PromptDialog";
 import AlertDialog from "./AlertDialog";
 
 const userLocation = "Chennai"; // For demo, can be made dynamic
 
 const ApplyLeave = () => {
-    const [pendingRevoke, setPendingRevoke] = useState(null);
+    // const [pendingRevoke, setPendingRevoke] = useState(null);
     // Dialog state
     const [alertOpen, setAlertOpen] = useState(false);
     const [alertMsg, setAlertMsg] = useState("");
@@ -42,17 +41,17 @@ const ApplyLeave = () => {
     const monthStr = `${year}-${String(month + 1).padStart(2, '0')}`;
     const monthLeaves = leaves.filter(l => l.date.startsWith(monthStr));
 
-    const handleDateClick = (date, isNational) => {
+    const handleDateClick = (date) => {
         // Prevent opening modal for weekends
         const dayObj = new Date(date);
         if (dayObj.getDay() === 0 || dayObj.getDay() === 6) {
             return;
         }
         // Allow modal for national holidays too
-        const leavesForDate = leaves.filter(l => l.date === date);
+        // const leavesForDate = leaves.filter(l => l.date === date); // OLD: Show leaves
         setEditingLeave(null); // Always open in apply mode for date cell click
         setSelectedDates([date]);
-        setLeavesForDate(leavesForDate);
+        setLeavesForDate([]); // NEW: Force "Apply Leave" mode (hide existing leaves) when clicking empty space
         setModalOpen(true);
     };
 
@@ -129,7 +128,23 @@ const ApplyLeave = () => {
                         leaves={monthLeaves}
                         onDateClick={handleDateClick}
                         onLeaveClick={(date, leave) => {
-                            setEditingLeave(leave);
+                            // Determine if user should see the leave prepopulated
+                            // Only Manager, Lead, or the Owner should see the details prepopulated for editing/viewing.
+                            // Others should see a blank form (to apply for themselves).
+                            const loggedInEmployee = employees.find(e => String(e.associateId) === String(user?.associateId));
+                            const isManagerOrLead = user && (user.role === 'Manager' || user.role === 'Lead');
+                            const isOwner = loggedInEmployee && leave.employee === loggedInEmployee.name;
+
+                            if (isManagerOrLead || isOwner) {
+                                setEditingLeave(leave);
+                            } else {
+                                setEditingLeave(null);
+                            }
+
+                            // FIX: Must set leavesForDate so the modal knows there are existing leaves (to show Edit/Revoke)
+                            const leavesOnThisDate = leaves.filter(l => l.date === date);
+                            setLeavesForDate(leavesOnThisDate);
+
                             setSelectedDates([date]);
                             setModalOpen(true);
                         }}
@@ -141,6 +156,7 @@ const ApplyLeave = () => {
                 </div>
             </div>
             <LeaveModal
+                key={selectedDates.join('-') + (editingLeave?._id || 'new')} // Force remount on date/leave change to clear internal state
                 open={modalOpen}
                 onClose={() => { setModalOpen(false); setSelectedDates([]); setEditingLeave(null); setLeavesForDate([]); }}
                 selectedDates={selectedDates}
@@ -165,74 +181,59 @@ const ApplyLeave = () => {
                 }}
                 onRevoke={async ({ employee, type, revocationReason }) => {
                     let revoked = false;
+                    let requested = false;
                     let reason = revocationReason;
-                    if (!reason) {
-                        // Store pending revoke info and open prompt
-                        setPendingRevoke({ employee, type });
-                        showPrompt('Please provide a reason for revoking this leave:', async (val) => {
-                            setPromptOpen(false);
-                            if (!val) return;
-                            // Get logged-in user info from top-level hook
-                            let revokedBy = user?.associateId;
-                            if (employees && user?.associateId) {
-                                const emp = employees.find(e => String(e.associateId) === String(user.associateId));
-                                if (emp) revokedBy = emp.name;
-                            }
-                            for (let date of selectedDates) {
-                                const existing = leaves.find(l => l.date === date && l.employee === employee && l.type === type);
-                                if (existing) {
-                                    const res = await revokeLeave(existing._id, val, revokedBy);
-                                    if (res && res.error) {
-                                        setAlertMsg(res.error);
-                                        setAlertOpen(true);
-                                        continue;
-                                    }
+
+                    const performRevoke = async (reasonVal) => {
+                        // Get logged-in user info from top-level hook
+                        let revokedBy = user?.associateId;
+                        if (employees && user?.associateId) {
+                            const emp = employees.find(e => String(e.associateId) === String(user.associateId));
+                            if (emp) revokedBy = emp.name;
+                        }
+
+                        for (let date of selectedDates) {
+                            const existing = leaves.find(l => l.date === date && l.employee === employee && l.type === type);
+                            if (existing) {
+                                const res = await revokeLeave(existing._id, reasonVal, revokedBy);
+                                if (res && res.error) {
+                                    setAlertMsg(res.error);
+                                    setAlertOpen(true);
+                                    continue;
+                                }
+                                if (res && res.approvalRequired) {
+                                    requested = true;
+                                } else {
                                     revoked = true;
                                 }
                             }
-                            setModalOpen(false);
-                            setSelectedDates([]);
-                            setEditingLeave(null);
-                            setLeavesForDate([]);
-                            if (revoked) {
-                                setAlertMsg('Leave revoked successfully');
-                                setAlertOpen(true);
-                            } else {
-                                setAlertMsg('Input information is not available');
-                                setAlertOpen(true);
-                            }
+                        }
+
+                        setModalOpen(false);
+                        setSelectedDates([]);
+                        setEditingLeave(null);
+                        setLeavesForDate([]);
+
+                        if (requested) {
+                            setAlertMsg('Revocation requested. Pending Manager approval.');
+                            setAlertOpen(true);
+                        } else if (revoked) {
+                            setAlertMsg('Leave revoked successfully');
+                            setAlertOpen(true);
+                        } else {
+                            // If neither happened, maybe it wasn't found or error alert already shown
+                        }
+                    };
+
+                    if (!reason) {
+                        showPrompt('Please provide a reason for revoking (or requesting to revoke) this leave:', async (val) => {
+                            if (!val) return;
+                            await performRevoke(val);
                         });
                         return;
                     }
-                    // Get logged-in user info from top-level hook
-                    let revokedBy = user?.associateId;
-                    if (employees && user?.associateId) {
-                        const emp = employees.find(e => String(e.associateId) === String(user.associateId));
-                        if (emp) revokedBy = emp.name;
-                    }
-                    for (let date of selectedDates) {
-                        const existing = leaves.find(l => l.date === date && l.employee === employee && l.type === type);
-                        if (existing) {
-                            const res = await revokeLeave(existing._id, reason, revokedBy);
-                            if (res && res.error) {
-                                setAlertMsg(res.error);
-                                setAlertOpen(true);
-                                continue;
-                            }
-                            revoked = true;
-                        }
-                    }
-                    setModalOpen(false);
-                    setSelectedDates([]);
-                    setEditingLeave(null);
-                    setLeavesForDate([]);
-                    if (revoked) {
-                        setAlertMsg('Leave revoked successfully');
-                        setAlertOpen(true);
-                    } else {
-                        setAlertMsg('Input information is not available');
-                        setAlertOpen(true);
-                    }
+
+                    await performRevoke(reason);
                 }}
             />
             <PromptDialog

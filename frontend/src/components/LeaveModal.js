@@ -21,13 +21,14 @@ function LeaveModal({ open, onClose, selectedDates, editingLeave, onSubmit, onRe
   const loggedInEmployee = employees.find(emp => String(emp.associateId) === String(user?.associateId));
   // If only one leave for the date, prefill. Otherwise, let user select.
   // Track which leave is selected for editing if multiple
-  const [selectedLeaveId, setSelectedLeaveId] = useState(editingLeave?._id || (leavesForDate?.length === 1 ? leavesForDate[0]._id : "none"));
-  const [employee, setEmployee] = useState(editingLeave?.employee || (leavesForDate?.length === 1 ? leavesForDate[0].employee : ""));
-  const [type, setType] = useState(editingLeave?.type || (leavesForDate?.length === 1 ? leavesForDate[0].type : "None"));
+  // Track which leave is selected for editing if multiple
+  const [selectedLeaveId, setSelectedLeaveId] = useState(editingLeave?._id || "none");
+  const [employee, setEmployee] = useState(editingLeave?.employee || "none");
+  const [type, setType] = useState(editingLeave?.type || "None");
 
   // When selectedLeaveId changes, update fields
   React.useEffect(() => {
-    if (selectedLeaveId) {
+    if (selectedLeaveId && selectedLeaveId !== "none") {
       const leave = leavesForDate.find(l => l._id === selectedLeaveId);
       if (leave) {
         setEmployee(leave.employee);
@@ -36,21 +37,15 @@ function LeaveModal({ open, onClose, selectedDates, editingLeave, onSubmit, onRe
     }
   }, [selectedLeaveId, leavesForDate]);
 
-  // When leavesForDate or editingLeave changes (modal opens), default to first leave if multiple
+  // When leavesForDate or editingLeave changes (modal opens)
   React.useEffect(() => {
     if (editingLeave?._id) {
       setSelectedLeaveId(editingLeave._id);
       setEmployee(editingLeave.employee);
       setType(editingLeave.type);
-    } else if (leavesForDate.length === 1) {
-      setSelectedLeaveId("none");
-      setEmployee("none");
-      setType("None");
-    } else if (leavesForDate.length > 1) {
-      setSelectedLeaveId("none");
-      setEmployee("none");
-      setType("None");
     } else {
+      // If no editingLeave (clicked on cell), always clear selection
+      // regardless of how many leaves exist
       setSelectedLeaveId("none");
       setEmployee("none");
       setType("None");
@@ -82,7 +77,7 @@ function LeaveModal({ open, onClose, selectedDates, editingLeave, onSubmit, onRe
         borderTopLeftRadius: 16,
         borderTopRightRadius: 16,
         paddingBottom: 10
-      }}>Apply Leave</DialogTitle>
+      }}>{leavesForDate && leavesForDate.length > 0 ? "Edit Leave" : "Apply Leave"}</DialogTitle>
       <DialogContent style={{ padding: 24, minWidth: 340 }}>
         <Box sx={{ minWidth: 250, mt: 1 }}>
           {/* Dropdown to select which leave to edit if multiple */}
@@ -236,7 +231,19 @@ function LeaveModal({ open, onClose, selectedDates, editingLeave, onSubmit, onRe
               }}
               variant="contained"
               color="primary"
-              disabled={!employee || !type || selectedLeaveId === "none"}
+              disabled={!employee || !type || selectedLeaveId === "none" || (() => {
+                // Allow Lead to always edit
+                if (user && user.role === 'Lead') return false;
+
+                const leave = leavesForDate.find(l => l._id === selectedLeaveId);
+                if (!leave) return false;
+
+                const leaveDate = new Date(leave.date);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                // Disable edit for past dates
+                return leaveDate < today;
+              })()}
               sx={{
                 borderRadius: 8,
                 fontWeight: 800,
@@ -257,12 +264,41 @@ function LeaveModal({ open, onClose, selectedDates, editingLeave, onSubmit, onRe
             >
               Edit
             </Button>
+            {/* DELETE BUTTON - Only for Leads */}
+            {user && user.role === 'Lead' && (
+              <Button
+                onClick={() => setDeleteDialogOpen(true)}
+                variant="contained"
+                color="error"
+                disabled={selectedLeaveId === "none"}
+                sx={{
+                  borderRadius: 8,
+                  fontWeight: 900,
+                  px: 3,
+                  py: 1,
+                  fontSize: 16,
+                  background: '#d32f2f',
+                  color: '#fff',
+                  letterSpacing: 0.8,
+                  boxShadow: '0 4px 18px 0 rgba(211, 47, 47, 0.25)',
+                  textTransform: 'uppercase',
+                  border: '2px solid #b71c1c',
+                  transition: 'background 0.18s, box-shadow 0.18s',
+                  '&:hover': {
+                    background: '#c62828',
+                    boxShadow: '0 6px 24px 0 rgba(198, 40, 40, 0.3)',
+                  }
+                }}
+              >
+                Delete
+              </Button>
+            )}
+
+            {/* REVOKE BUTTON - For Everyone (including Lead) */}
             <Button
               onClick={async () => {
                 if (employee && type && selectedLeaveId !== "none") {
-                  if (user && user.role === 'Lead') {
-                    setDeleteDialogOpen(true);
-                  } else if (onRevoke) {
+                  if (onRevoke) {
                     await onRevoke({ employee, type });
                     onClose();
                   }
@@ -277,12 +313,18 @@ function LeaveModal({ open, onClose, selectedDates, editingLeave, onSubmit, onRe
                 (() => {
                   const leave = leavesForDate.find(l => l._id === selectedLeaveId);
                   if (!leave) return true;
-                  // Allow Lead to revoke any leave, even past dates
+
+                  // If already revoked, "Delete" is the only option (handled by button above for Leads)
+                  // So disable "Revoke" button if status is Revoked
+                  if (leave.status === 'Revoked') return true;
+
+                  // Allow Lead to always Revoke (if active)
                   if (user && user.role === 'Lead') return false;
-                  const leaveDate = new Date(leave.date);
-                  const today = new Date();
-                  today.setHours(0, 0, 0, 0);
-                  return leaveDate < today;
+
+                  // For others: strictly only allow revoking OWN leaves
+                  if (loggedInEmployee && leave.employee !== loggedInEmployee.name) return true;
+
+                  return false;
                 })()
               }
               sx={{

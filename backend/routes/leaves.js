@@ -49,20 +49,120 @@ router.delete('/leaves/:id', async (req, res) => {
 });
 
 // REVOKE leave
+// REVOKE leave or REQUEST revocation
 router.put('/leaves/:id/revoke', async (req, res) => {
     try {
         const leave = await Leave.findById(req.params.id);
         if (!leave) return res.status(404).json({ error: 'Leave not found' });
-        // Prevent revocation if leave date is in the past
+
         const today = new Date();
+        today.setHours(0, 0, 0, 0);
         const leaveDate = new Date(leave.date);
-        if (leaveDate < today.setHours(0, 0, 0, 0)) {
-            return res.status(400).json({ error: 'Cannot revoke a leave that is in the past.' });
+
+        // Check if user is Lead (can skip approval)
+        // Note: req.user is set by authMiddleware. Ensure 'Lead' role check is correct.
+        const isLead = req.user && req.user.role === 'Lead';
+        const isPast = leaveDate < today;
+
+        if (isPast && !isLead) {
+            // Request Revocation instead of immediate revoke
+            leave.revocationRequest = {
+                isRequested: true,
+                reason: req.body.revocationReason || '',
+                requestedAt: new Date()
+            };
+            await leave.save();
+            return res.json({ success: true, message: 'Revocation requested. Manager approval required.', approvalRequired: true, leave });
         }
+
+        // Standard Revocation (Future date OR Lead role)
         leave.status = 'Revoked';
         leave.revokedAt = new Date();
-        leave.revokedBy = req.body.revokedBy || 'self';
+        leave.revokedBy = req.body.revokedBy || req.user?.username || 'self';
         leave.revocationReason = req.body.revocationReason || '';
+        // Clear any pending request if force-revoked
+        leave.revocationRequest = { isRequested: false, reason: '', requestedAt: null };
+
+        await leave.save();
+        res.json({ success: true, leave });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+// DECLINE Revocation (Manager action)
+router.put('/leaves/:id/decline-revocation', async (req, res) => {
+    try {
+        const leave = await Leave.findById(req.params.id);
+        if (!leave) return res.status(404).json({ error: 'Leave not found' });
+
+        // Update revocation request status
+        leave.revocationRequest = {
+            isRequested: false, // No longer pending
+            isRejected: true,
+            reason: leave.revocationRequest.reason, // Keep original reason
+            requestedAt: leave.revocationRequest.requestedAt,
+            rejectedBy: req.user?.username || 'Manager',
+            rejectedAt: new Date(),
+            rejectionReason: req.body.reason || ''
+        };
+        // Leave status remains 'Active'
+
+        await leave.save();
+        res.json({ success: true, leave });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+// GET Pending Revocations & History (Notifications)
+router.get('/leaves/pending-revocation', async (req, res) => {
+    try {
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+        const isManager = req.user && (req.user.role === 'Manager' || req.user.role === 'Lead');
+        const username = req.user ? req.user.username : null;
+
+        let query = {
+            $or: [
+                { 'revocationRequest.isRequested': true, status: 'Active' }, // Pending
+                { status: 'Revoked', revokedAt: { $gte: sixMonthsAgo } },    // Approved History
+                { 'revocationRequest.isRejected': true, 'revocationRequest.rejectedAt': { $gte: sixMonthsAgo } } // Rejected History
+            ]
+        };
+
+        // If not manager, only show their own leaves
+        if (!isManager && username) {
+            query.employee = username;
+        }
+
+        const leaves = await Leave.find(query).sort({
+            'revocationRequest.requestedAt': -1,
+            revokedAt: -1,
+            'revocationRequest.rejectedAt': -1
+        });
+
+        res.json(leaves);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// APPROVE Revocation (Manager action)
+router.put('/leaves/:id/approve-revocation', async (req, res) => {
+    try {
+        const leave = await Leave.findById(req.params.id);
+        if (!leave) return res.status(404).json({ error: 'Leave not found' });
+
+        leave.status = 'Revoked';
+        leave.revokedAt = new Date();
+        leave.revokedBy = req.user?.username || 'Manager'; // Approved by
+        leave.revocationReason = leave.revocationRequest.reason; // Use the reason from request
+
+        // Clear request
+        leave.revocationRequest = { isRequested: false, reason: '', requestedAt: null };
+
         await leave.save();
         res.json({ success: true, leave });
     } catch (err) {

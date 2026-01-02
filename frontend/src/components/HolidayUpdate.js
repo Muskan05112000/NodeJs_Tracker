@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useContext } from "react";
 import {
   Box,
   Button,
@@ -9,8 +9,6 @@ import {
   DialogActions,
   TextField,
   FormControl,
-  Checkbox,
-  ListItemText,
   Autocomplete
 } from "@mui/material";
 import { getNames as getCountryNames } from 'country-list';
@@ -79,14 +77,14 @@ const HolidayUpdate = () => {
     }
   }, [country]);
 
-  const handleCountryChange = (e) => {
-    setCountry(e.target.value);
-    setCities([]);
-  };
+  // const handleCountryChange = (e) => {
+  //   setCountry(e.target.value);
+  //   setCities([]);
+  // };
 
-  const handleCitiesChange = (e) => {
-    setCities(e.target.value);
-  };
+  // const handleCitiesChange = (e) => {
+  //   setCities(e.target.value);
+  // };
 
   const countryList = getCountryNames();
 

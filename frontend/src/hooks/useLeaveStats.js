@@ -52,7 +52,7 @@ export const useLeaveStats = (user, activeLeaves, employees) => {
         // 2. Top Type & Peak Month & Advance Booking
         const byType = {};
         const byMonth = {};
-        let advanceBookingCount = 0;
+        // let advanceBookingCount = 0;
 
         userLeaves.forEach(l => {
             // Type
@@ -64,7 +64,7 @@ export const useLeaveStats = (user, activeLeaves, employees) => {
             byMonth[m] = (byMonth[m] || 0) + 1;
 
             // Advance (Simplified: Planned = Advance)
-            if (l.type === 'Planned') advanceBookingCount++;
+            // if (l.type === 'Planned') advanceBookingCount++;
         });
 
         // Top Type
@@ -285,7 +285,7 @@ export const useLeaveStats = (user, activeLeaves, employees) => {
             {
                 title: "The Wildcard 🃏",
                 description: "Your leave pattern is so chaotic, even the AI gave up.",
-                criteria: (s) => 1
+                criteria: () => 1
             }
         ];
 

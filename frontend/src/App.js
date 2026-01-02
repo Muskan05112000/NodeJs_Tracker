@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import TopBar from "./components/TopBar";
 import ApplyLeave from "./components/ApplyLeave";
 import Users from "./components/Users";
 import Analysis from "./components/Analysis";
-import Dashboard from "./components/Dashboard";
+// import Dashboard from "./components/Dashboard";
 import HolidayUpdate from "./components/HolidayUpdate";
 import { AppProvider } from "./context/AppContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
@@ -14,7 +14,7 @@ import LeaderboardPage from "./components/LeaderboardPage";
 import { AnimatePresence } from 'framer-motion';
 import PageTransition from "./components/PageTransition";
 
-const roleOptions = ['Employee', 'Manager', 'Lead'];
+// const roleOptions = ['Employee', 'Manager', 'Lead'];
 
 function AccessDeniedBanner({ show }) {
   if (!show) return null;
@@ -43,9 +43,9 @@ function AccessDeniedBanner({ show }) {
 function ProtectedRoute({ element, allowedRoles }) {
   const location = useLocation();
   const { user } = useAuth();
-  const [denied, setDenied] = useState(false);
+  // const [denied, setDenied] = useState(false);
   if (!user || !allowedRoles.includes(user.role)) {
-    setTimeout(() => setDenied(false), 3000);
+    // setTimeout(() => setDenied(false), 3000);
     return <>
       <AccessDeniedBanner show={true} />
       <Navigate to="/" state={{ from: location }} replace />
@@ -55,15 +55,15 @@ function ProtectedRoute({ element, allowedRoles }) {
 }
 
 const AppRoutes = () => {
-  const { user, logout } = useAuth();
+  const { user /*, logout */ } = useAuth();
   const location = useLocation();
-  const [showLogoutMsg, setShowLogoutMsg] = React.useState(false);
-  const handleLogout = () => {
+  // const [showLogoutMsg, setShowLogoutMsg] = React.useState(false);
+  /* const handleLogout = () => {
     logout();
     setShowLogoutMsg(true);
     setTimeout(() => setShowLogoutMsg(false), 2500);
-  };
-  if (!user) return <Login loggedOut={showLogoutMsg} />;
+  }; */
+  if (!user) return <Login loggedOut={false} />;
   return (
     <>
       <Sidebar userRole={user.role} />

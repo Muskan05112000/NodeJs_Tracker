@@ -1,13 +1,13 @@
-import React, { useContext, useMemo, useState } from "react";
+import React, { useContext } from "react";
 import { AppContext } from "../context/AppContext";
-import { Box, Typography, Button, Grid, Paper } from "@mui/material";
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, LineChart, Line, Legend } from "recharts";
-import { format, parseISO } from "date-fns";
+import { Box, Typography, Paper } from "@mui/material";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Legend } from "recharts";
+import { format } from "date-fns";
 
 const COLORS = ["#66bb6a", "#ef5350", "#fff176", "#8bc34a"];
 const LEAVE_TYPES = ["Planned", "Emergency", "Sick", "HalfDay"];
 
-function AnalysisCharts({ month, year, type, onViewDetails }) {
+function AnalysisCharts({ month, year, type }) {
   const { activeLeaves } = useContext(AppContext);
 
   // Donut chart data for selected month
@@ -99,7 +99,7 @@ function AnalysisCharts({ month, year, type, onViewDetails }) {
         return (
           <Paper sx={tooltipStyle}>
             <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>{label}</Typography>
-            {payload.map((entry, idx) => (
+            {payload.map((entry) => (
               <div key={entry.name} style={{ color: entry.fill, fontWeight: 600, fontSize: 14, margin: '2px 0' }}>
                 ● {entry.name}: <span style={{ fontWeight: 800 }}>{entry.value}</span>
               </div>
@@ -152,7 +152,7 @@ function AnalysisCharts({ month, year, type, onViewDetails }) {
         return (
           <Paper sx={tooltipStyle}>
             <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>{label}</Typography>
-            {payload.map((entry, idx) => (
+            {payload.map((entry) => (
               <div key={entry.name} style={{ color: '#7c4dff', fontWeight: 600, fontSize: 14, margin: '2px 0' }}>
                 ● Total: <span style={{ fontWeight: 800 }}>{entry.value}</span>
               </div>

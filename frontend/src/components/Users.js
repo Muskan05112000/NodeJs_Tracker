@@ -136,7 +136,7 @@ const Users = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {[...employees].sort((a, b) => a.name.localeCompare(b.name)).map((emp, idx) => (
+              {[...employees].sort((a, b) => a.name.localeCompare(b.name)).map((emp) => (
                 <TableRow
                   key={emp._id || emp.name}
                   onClick={() => setEditUser(editUser?.name === emp.name ? null : emp)}
