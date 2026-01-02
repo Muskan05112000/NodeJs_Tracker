@@ -174,8 +174,8 @@ const LeaveWrapped = ({ open, onClose }) => {
                     </ScratchCard>
 
                     <Typography variant="h6" color="#ccc" sx={{ maxWidth: '700px', fontStyle: 'italic', lineHeight: 1.6, mt: 4 }}>
-                        "Yeah, we spied on all you guys in between the hectic work too... <br />
-                        Here is the declassified footage of your year."
+                        &quot;Yeah, we spied on all you guys in between the hectic work too... <br />
+                        Here is the declassified footage of your year.&quot;
                     </Typography>
                 </>
             )
@@ -195,7 +195,8 @@ const LeaveWrapped = ({ open, onClose }) => {
                             "Target stationary. No significant movements detected. We will be watching you closely next year." :
                             (data.totalDays > 20
                                 ? "Our drones successfully lost track of you this many times. Tactics: Admirable."
-                                : "You were barely out of our sight. Surveillance was... boringly easy.")}
+                                : "You were barely out of our sight. Surveillance was... boringly easy.") +
+                            ((data.totalDays === 0) ? " Target stationary. No significant movements detected. We will be watching you closely next year." : "")}
                     </Typography>
                 </>
             )
@@ -227,10 +228,10 @@ const LeaveWrapped = ({ open, onClose }) => {
                         <Typography variant="h2" fontWeight={900} color="#fff" sx={{ mb: 2 }}>{data.peakMonth || 'N/A'}</Typography>
                     </SecretReveal>
                     <Typography variant="h6" color="#fff" sx={{ opacity: 0.8, mt: 2 }}>
-                        "{data.peakMonthTitle}"
+                        &quot;{data.peakMonthTitle}&quot;
                     </Typography>
                     <Typography variant="h6" color="#eee" sx={{ mt: 4, maxWidth: '80%', fontStyle: 'italic' }}>
-                        "Satellite imagery shows zero activity from your desk for more hours than ever during this month. Ghost protocol initiated?"
+                        &quot;Satellite imagery shows zero activity from your desk for more hours than ever during this month. Ghost protocol initiated?&quot;
                     </Typography>
                 </>
             )
@@ -267,7 +268,7 @@ const LeaveWrapped = ({ open, onClose }) => {
                         </Typography>
                     </ScratchCard>
                     <Typography variant="h5" color="#eee" sx={{ mt: 4, fontStyle: 'italic', opacity: 0.9, maxWidth: '80%' }}>
-                        "{data.punctuality.reason}"
+                        &quot;{data.punctuality.reason}&quot;
                     </Typography>
                 </>
             )
@@ -302,7 +303,7 @@ const LeaveWrapped = ({ open, onClose }) => {
                     </Typography>
 
                     <Typography variant="body1" color="rgba(255,255,255,0.8)" sx={{ mt: 6, maxWidth: '700px', display: 'block', fontStyle: 'italic' }}>
-                        "Hey, don't be surprised—we have spied on you for the last few months only as re-building our survillance system took time ! 😉"
+                        &quot;Hey, don&apos;t be surprised—we have spied on you for the last few months only as re-building our survillance system took time ! 😉&quot;
                     </Typography>
                 </>
             )
@@ -429,7 +430,7 @@ const LeaveWrapped = ({ open, onClose }) => {
                                     {data.punctuality.title}
                                 </Typography>
                                 <Typography variant="body2" color="#aaa" sx={{ mt: 1, fontStyle: 'italic' }}>
-                                    "{data.punctuality.reason}"
+                                    &quot;{data.punctuality.reason}&quot;
                                 </Typography>
                             </Box>
 
@@ -460,7 +461,7 @@ const LeaveWrapped = ({ open, onClose }) => {
                         animation: 'fadeIn 1s ease 2s backwards'
                     }}>
                         <Typography variant="body1" color="#FFD700" fontStyle="italic" sx={{ fontWeight: 500 }}>
-                            "{funnyQuotes[Math.floor(Math.random() * funnyQuotes.length)]}"
+                            &quot;{funnyQuotes[Math.floor(Math.random() * funnyQuotes.length)]}&quot;
                         </Typography>
                     </Box>
 

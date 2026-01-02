@@ -42,8 +42,6 @@ function AnalysisTable({ year, startMonth, endMonth, selectedEmployee }) {
         boxShadow: '0 8px 32px 0 rgba(124,77,255,0.10)',
         borderRadius: 4,
         mt: 2,
-        borderRadius: 4,
-        mt: 2,
         width: '100%',
         background: 'rgba(255,255,255,0.98)',
         overflowX: 'auto',
@@ -139,8 +137,6 @@ function AnalysisTable({ year, startMonth, endMonth, selectedEmployee }) {
             background: 'linear-gradient(90deg, #7c4dff 0%, #b388ff 100%)',
             color: '#fff',
             boxShadow: '0 4px 18px 0 #b388ff22',
-            letterSpacing: 0.3,
-            transition: 'background 0.18s, box-shadow 0.18s, transform 0.14s',
             letterSpacing: 0.2,
             transition: 'background 0.2s, box-shadow 0.2s',
             '&:hover': {

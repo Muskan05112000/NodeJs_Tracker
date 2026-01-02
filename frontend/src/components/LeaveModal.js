@@ -1,5 +1,5 @@
 import React, { useState, useContext } from "react";
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, MenuItem, Select, InputLabel, FormControl, Box } from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, MenuItem, Select, InputLabel, FormControl, Box, Snackbar, Alert } from "@mui/material";
 import { AppContext } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 
@@ -13,6 +13,8 @@ const leaveTypes = [
 
 function LeaveModal({ open, onClose, selectedDates, editingLeave, onSubmit, onRevoke, onEdit, leavesForDate = [], isSubmitting }) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMsg, setAlertMsg] = useState('');
   const { employees, deleteLeave } = useContext(AppContext);
   const { user } = useAuth();
   // Find the logged-in employee by associateId
@@ -360,6 +362,11 @@ function LeaveModal({ open, onClose, selectedDates, editingLeave, onSubmit, onRe
           }} color="error" variant="contained" sx={{ fontWeight: 900, px: 3, borderRadius: 8 }}>Delete</Button>
         </DialogActions>
       </Dialog>
+      <Snackbar open={alertOpen} autoHideDuration={6000} onClose={() => setAlertOpen(false)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+        <Alert onClose={() => setAlertOpen(false)} severity="warning" sx={{ width: '100%', fontWeight: 600 }}>
+          {alertMsg}
+        </Alert>
+      </Snackbar>
     </Dialog>
   );
 }

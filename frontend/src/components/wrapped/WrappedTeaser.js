@@ -46,7 +46,7 @@ const WrappedTeaser = ({ open, onClose, onOpenWrapped }) => {
                     A Letter for You
                 </Typography>
                 <Typography variant="body1" sx={{ fontFamily: 'Merriweather, serif', color: '#546e7a', mb: 3, fontStyle: 'italic', lineHeight: 1.6 }}>
-                    "We've collected some fond memories and stats from your journey in 2025. Attached herewith is your personalized summary."
+                    &quot;We&apos;ve collected some fond memories and stats from your journey in 2025. Attached herewith is your personalized summary.&quot;
                 </Typography>
 
                 {/* Attachment / Action */}

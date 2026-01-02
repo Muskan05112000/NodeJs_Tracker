@@ -382,7 +382,7 @@ function Calendar({
                 </DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        Are you sure you want to send the <b>"Leave Wrapped"</b> letter to <b>ALL</b> users?
+                        Are you sure you want to send the <b>&quot;Leave Wrapped&quot;</b> letter to <b>ALL</b> users?
                         <br /><br />
                         This will make the popup appear on their screen the next time they refresh the page.
                     </DialogContentText>

@@ -243,7 +243,7 @@ const LeaderboardPage = () => {
                         🏆 Wall of Fame
                     </Typography>
                     <Typography variant="h5" sx={{ color: '#455a64', fontWeight: 600, fontStyle: 'italic', mb: 1 }}>
-                        "{randomQuote}"
+                        &quot;{randomQuote}&quot;
                     </Typography>
                 </Box>
 
@@ -365,14 +365,14 @@ const LeaderboardPage = () => {
                                         maxWidth: 400,
                                         lineHeight: 1.6
                                     }}>
-                                        "{[
+                                        &quot;{[
                                             "Don't rush, you still have time.",
                                             "History is written in December.",
                                             "Too early to call the winner. Pace yourself!",
                                             "Great things take time. Wait for the grand finale.",
                                             "The year isn't over yet. Keep counting!",
                                             "Legends are revealed at the finish line."
-                                        ][Math.floor(Math.random() * 6)]}"
+                                        ][Math.floor(Math.random() * 6)]}&quot;
                                     </Typography>
                                     <Box sx={{
                                         mt: 2,
