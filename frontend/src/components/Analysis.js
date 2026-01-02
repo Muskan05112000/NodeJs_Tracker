@@ -5,7 +5,7 @@ import SendMailDialog from "./SendMailDialog";
 import AnalysisCharts from "./AnalysisCharts";
 import AnalysisTable from "./AnalysisTable";
 import DonutChartOnly from "./DonutChartOnly";
-import TeamAnalysis from "./TeamAnalysis";
+import DailyLeaveAnalysis from "./DailyLeaveAnalysis";
 import { AppContext } from "../context/AppContext";
 
 const Analysis = () => {
@@ -348,9 +348,9 @@ const Analysis = () => {
           <AnalysisCharts month={startMonth} year={year} type="bar2" />
         </Paper>
 
-        {/* Card 4: Team Analysis */}
+        {/* Card 4: Daily Leave Analysis */}
         <Paper elevation={0} sx={{ p: 3, borderRadius: 3, border: '1px solid #eef2f6', boxShadow: '0 2px 14px rgba(0,0,0,0.03)', height: '100%', minHeight: 420 }}>
-          <TeamAnalysis startMonth={startMonth} endMonth={endMonth} year={year} />
+          <DailyLeaveAnalysis />
         </Paper>
 
         {/* Full Width Table */}
