@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
+import { AppContext } from "../context/AppContext";
 import { format, addMonths, subMonths, startOfMonth, startOfWeek, addDays } from "date-fns";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
@@ -22,6 +23,7 @@ function Calendar({
     onLeaveClick, // Added prop for handling leave clicks properly if passed
 }) {
     const { user } = useAuth();
+    const { weekendSettings } = useContext(AppContext);
     const [wrappedOpen, setWrappedOpen] = useState(false);
 
     // Use custom hook for Wrapped Trigger Logic
@@ -67,7 +69,8 @@ function Calendar({
             const dayLeaves = leaves.filter(l => l.date === formattedDate);
             const isSelected = selectedDates.includes(formattedDate);
             const isInCurrentMonth = day.getMonth() === month;
-            const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+            const dayOfWeek = day.getDay();
+            const isWeekend = (dayOfWeek === 6 && weekendSettings?.blockSaturday) || (dayOfWeek === 0 && weekendSettings?.blockSunday);
             weekCells.push({
                 key: formattedDate,
                 isSelected,

@@ -29,7 +29,7 @@ const ApplyLeave = () => {
         setPromptOpen(true);
     };
 
-    const { holidays, leaves, addLeave, editLeave, revokeLeave, loading, employees } = useContext(AppContext);
+    const { holidays, leaves, addLeave, editLeave, revokeLeave, loading, employees, weekendSettings } = useContext(AppContext);
     const { user } = useAuth();
     const [month, setMonth] = useState(new Date().getMonth());
     const [year, setYear] = useState(new Date().getFullYear());
@@ -42,11 +42,14 @@ const ApplyLeave = () => {
     const monthLeaves = leaves.filter(l => l.date.startsWith(monthStr));
 
     const handleDateClick = (date) => {
-        // Prevent opening modal for weekends
+        // Prevent opening modal for weekends based on CONFIG
         const dayObj = new Date(date);
-        if (dayObj.getDay() === 0 || dayObj.getDay() === 6) {
-            return;
-        }
+        const dayOfWeek = dayObj.getDay();
+        const isSaturday = dayOfWeek === 6;
+        const isSunday = dayOfWeek === 0;
+
+        if (isSaturday && weekendSettings?.blockSaturday) return;
+        if (isSunday && weekendSettings?.blockSunday) return;
         // Allow modal for national holidays too
         // const leavesForDate = leaves.filter(l => l.date === date); // OLD: Show leaves
         setEditingLeave(null); // Always open in apply mode for date cell click

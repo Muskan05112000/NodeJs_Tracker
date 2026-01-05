@@ -11,6 +11,7 @@ export const AppProvider = ({ children }) => {
   const [holidays, setHolidays] = useState([]);
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [weekendSettings, setWeekendSettings] = useState({ blockSaturday: true, blockSunday: true }); // Default to blocking
 
   // Get user from AuthContext to react to login/logout
   const { user, logout } = useAuth();
@@ -32,14 +33,16 @@ export const AppProvider = ({ children }) => {
 
         const headers = { 'Authorization': `Bearer ${token}` };
 
-        const [empRes, holRes, leaveRes] = await Promise.all([
+        const [empRes, holRes, leaveRes, configRes] = await Promise.all([
           fetch(`${API_BASE}/employees`, { headers }),
           fetch(`${API_BASE}/holidays`, { headers }),
-          fetch(`${API_BASE}/leaves`, { headers })
+          fetch(`${API_BASE}/leaves`, { headers }),
+          fetch(`${API_BASE}/config/weekendSettings`, { headers })
         ]);
 
         // Helper to safely handle response
         const handleResponse = async (res) => {
+          if (!res) return null;
           if (res.status === 401) {
             console.warn("Session expired (401). Logging out...");
             logout();
@@ -47,20 +50,29 @@ export const AppProvider = ({ children }) => {
           }
           if (res.ok) {
             const data = await res.json();
-            return Array.isArray(data) ? data : [];
+            return data;
           }
           console.error(`Fetch failed: ${res.statusText}`);
-          return [];
+          return null;
         };
 
         const empData = await handleResponse(empRes);
-        if (empData !== null) setEmployees(empData);
+        if (empData && Array.isArray(empData)) setEmployees(empData);
 
         const holData = await handleResponse(holRes);
-        if (holData !== null) setHolidays(holData);
+        if (holData && Array.isArray(holData)) setHolidays(holData);
 
         const leaveData = await handleResponse(leaveRes);
-        if (leaveData !== null) setLeaves(leaveData);
+        if (leaveData && Array.isArray(leaveData)) setLeaves(leaveData);
+
+        const configData = await handleResponse(configRes);
+        if (configData && configData.value) {
+          setWeekendSettings(configData.value);
+        } else {
+          // Default if nothing found (or error)
+          setWeekendSettings({ blockSaturday: true, blockSunday: true });
+        }
+
 
       } catch (err) {
         console.error("Error fetching data:", err);
@@ -229,6 +241,26 @@ export const AppProvider = ({ children }) => {
     return res.ok;
   };
 
+  // --- Configuration ---
+  const updateWeekendSettings = async (newSettings) => {
+    const token = sessionStorage.getItem('token');
+    try {
+      const res = await fetch(`${API_BASE}/config/weekendSettings`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ value: newSettings })
+      });
+      if (res.ok) {
+        setWeekendSettings(newSettings);
+      }
+    } catch (err) {
+      console.error("Failed to update config:", err);
+    }
+  };
+
   // Holidays are read-only for now; if you want to add CRUD, let me know
 
   return (
@@ -238,7 +270,8 @@ export const AppProvider = ({ children }) => {
       approveRevocation, declineRevocation, fetchPendingRevocations, clearNotifications,
       holidays, setHolidays,
       loading,
-      activeLeaves: Array.isArray(leaves) ? leaves.filter(l => l.status !== "Revoked") : []
+      activeLeaves: Array.isArray(leaves) ? leaves.filter(l => l.status !== "Revoked") : [],
+      weekendSettings, updateWeekendSettings
     }}>
       {children}
     </AppContext.Provider>

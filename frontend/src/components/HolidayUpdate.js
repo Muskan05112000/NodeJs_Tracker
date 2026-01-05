@@ -9,7 +9,9 @@ import {
   DialogActions,
   TextField,
   FormControl,
-  Autocomplete
+  Autocomplete,
+  Switch,
+  FormControlLabel
 } from "@mui/material";
 import { getNames as getCountryNames } from 'country-list';
 import { City } from 'country-state-city';
@@ -29,10 +31,27 @@ const HolidayUpdate = () => {
   const [occasion, setOccasion] = useState("");
   const [isNational, setIsNational] = useState(false);
   const [countryCities, setCountryCities] = useState([]);
-  const { holidays, setHolidays } = useContext(AppContext);
+  const { holidays, setHolidays, weekendSettings, updateWeekendSettings } = useContext(AppContext);
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMsg, setAlertMsg] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Weekend Config
+  const [weekendConfigOpen, setWeekendConfigOpen] = useState(false);
+  const [localWeekendSettings, setLocalWeekendSettings] = useState({ blockSaturday: true, blockSunday: true });
+
+  React.useEffect(() => {
+    if (weekendSettings) {
+      setLocalWeekendSettings(weekendSettings);
+    }
+  }, [weekendSettings]);
+
+  const saveWeekendSettings = async () => {
+    await updateWeekendSettings(localWeekendSettings);
+    setWeekendConfigOpen(false);
+    setAlertMsg("Weekend settings updated!");
+    setAlertOpen(true);
+  };
 
   React.useEffect(() => {
     if (country) {
@@ -423,6 +442,60 @@ const HolidayUpdate = () => {
           )}
         </DialogActions>
       </Dialog>
+
+      {/* WEEKEND CONFIGURATION */}
+      <Button
+        variant="outlined"
+        color="primary"
+        sx={{ borderRadius: 2, fontWeight: 700, px: 4, py: 1.5, fontSize: 18, mb: 2, ml: 2, borderWidth: 2 }}
+        onClick={() => setWeekendConfigOpen(true)}
+      >
+        Configure Weekends
+      </Button>
+
+      <Dialog open={weekendConfigOpen} onClose={() => setWeekendConfigOpen(false)} maxWidth="xs" fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 6,
+            p: 2
+          }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 800, textAlign: 'center', color: '#4e2a84' }}>
+          Weekend Settings
+        </DialogTitle>
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center', py: 3 }}>
+          <Typography variant="body2" color="textSecondary" align="center" mb={2}>
+            Toggle which weekend days cannot be applied for leave.
+          </Typography>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={localWeekendSettings.blockSaturday}
+                onChange={(e) => setLocalWeekendSettings(prev => ({ ...prev, blockSaturday: e.target.checked }))}
+                color="secondary"
+              />
+            }
+            label={<span style={{ fontWeight: 700, fontSize: 18 }}>Block Saturday</span>}
+          />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={localWeekendSettings.blockSunday}
+                onChange={(e) => setLocalWeekendSettings(prev => ({ ...prev, blockSunday: e.target.checked }))}
+                color="secondary"
+              />
+            }
+            label={<span style={{ fontWeight: 700, fontSize: 18 }}>Block Sunday</span>}
+          />
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
+          <Button onClick={saveWeekendSettings} variant="contained" color="secondary" sx={{ borderRadius: 8, px: 4, fontWeight: 700 }}>
+            Save Settings
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <AlertDialog
         open={alertOpen}
         message={alertMsg}
