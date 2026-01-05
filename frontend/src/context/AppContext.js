@@ -217,13 +217,25 @@ export const AppProvider = ({ children }) => {
     return res.ok ? await res.json() : [];
   };
 
+  const clearNotifications = async () => {
+    const token = sessionStorage.getItem('token');
+    const res = await fetch(`${API_BASE}/leaves/clear-notifications`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      }
+    });
+    return res.ok;
+  };
+
   // Holidays are read-only for now; if you want to add CRUD, let me know
 
   return (
     <AppContext.Provider value={{
       employees, setEmployees, addEmployee, editEmployee, deleteEmployee,
       leaves, setLeaves, addLeave, editLeave, revokeLeave, deleteLeave,
-      approveRevocation, declineRevocation, fetchPendingRevocations,
+      approveRevocation, declineRevocation, fetchPendingRevocations, clearNotifications,
       holidays, setHolidays,
       loading,
       activeLeaves: Array.isArray(leaves) ? leaves.filter(l => l.status !== "Revoked") : []

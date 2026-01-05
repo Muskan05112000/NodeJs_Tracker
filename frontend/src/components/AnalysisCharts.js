@@ -36,6 +36,10 @@ function AnalysisCharts({ month, year, type }) {
   const years = Array.from(new Set(activeLeaves.map(l => l.date.slice(0, 4))));
   const yearlyCounts = years.map(y => ({
     year: y,
+    Planned: activeLeaves.filter(l => l.date.startsWith(y) && l.type === "Planned").length,
+    Emergency: activeLeaves.filter(l => l.date.startsWith(y) && l.type === "Emergency").length,
+    Sick: activeLeaves.filter(l => l.date.startsWith(y) && l.type === "Sick").length,
+    HalfDay: activeLeaves.filter(l => l.date.startsWith(y) && l.type === "HalfDay").length,
     Total: activeLeaves.filter(l => l.date.startsWith(y)).length
   }));
 
@@ -47,14 +51,15 @@ function AnalysisCharts({ month, year, type }) {
     </Box>
   );
 
-  // Glassmorphism Tooltip Style
+  // Futuristic Dark Glass Tooltip
   const tooltipStyle = {
     padding: '12px',
-    boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.15)',
+    boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.5)',
     borderRadius: '12px',
-    background: 'rgba(255, 255, 255, 0.85)',
-    backdropFilter: 'blur(8px)',
-    border: '1px solid rgba(255, 255, 255, 0.18)'
+    background: 'rgba(20, 20, 30, 0.9)', // Dark background
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    color: '#fff'
   };
 
   if (type === 'donut') {
@@ -194,15 +199,24 @@ function AnalysisCharts({ month, year, type }) {
     );
   }
   if (type === 'bar2') {
-    // Custom Tooltip for yearly bar
+    // Reusing the CustomTooltip from bar1 logic for consistency
     const CustomTooltipYear = ({ active, payload, label }) => {
       if (active && payload && payload.length) {
+        const getColor = (name) => {
+          switch (name) {
+            case 'Planned': return '#b388ff';
+            case 'Emergency': return '#ff5252';
+            case 'Sick': return '#ffd740';
+            case 'HalfDay': return '#64ffda';
+            default: return '#fff';
+          }
+        };
         return (
           <Paper sx={tooltipStyle}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>{label}</Typography>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5, color: '#fff' }}>{label}</Typography>
             {payload.map((entry) => (
-              <div key={entry.name} style={{ color: '#7c4dff', fontWeight: 600, fontSize: 14, margin: '2px 0' }}>
-                ● Total: <span style={{ fontWeight: 800 }}>{entry.value}</span>
+              <div key={entry.name} style={{ color: getColor(entry.name), fontWeight: 600, fontSize: 14, margin: '2px 0' }}>
+                ● {entry.name}: <span style={{ fontWeight: 800, color: '#fff' }}>{entry.value}</span>
               </div>
             ))}
           </Paper>
@@ -223,15 +237,36 @@ function AnalysisCharts({ month, year, type }) {
             textAlign: 'left'
           }}
         >
-          Yearly Total Leaves
+          Yearly Total Leaves Breakdown
         </Typography>
         <ResponsiveContainer width="100%" height="85%">
           <BarChart data={yearlyCounts} barGap={4} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+            <defs>
+              <linearGradient id="colorPlanned" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#7c4dff" stopOpacity={0.9} />
+                <stop offset="95%" stopColor="#d1c4e9" stopOpacity={0.8} />
+              </linearGradient>
+              <linearGradient id="colorEmergency" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#ff5252" stopOpacity={0.9} />
+                <stop offset="95%" stopColor="#ff8a80" stopOpacity={0.8} />
+              </linearGradient>
+              <linearGradient id="colorSick" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#ffd740" stopOpacity={0.9} />
+                <stop offset="95%" stopColor="#ffff8d" stopOpacity={0.8} />
+              </linearGradient>
+              <linearGradient id="colorHalfDay" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#64ffda" stopOpacity={0.9} />
+                <stop offset="95%" stopColor="#a7ffeb" stopOpacity={0.8} />
+              </linearGradient>
+            </defs>
             <XAxis dataKey="year" tick={{ fontWeight: 600, fontSize: 13, fontFamily: 'Inter, Roboto, Arial, sans-serif' }} axisLine={{ stroke: '#eee' }} tickLine={false} />
             <YAxis tick={{ fontWeight: 600, fontSize: 13, fontFamily: 'Inter, Roboto, Arial, sans-serif' }} axisLine={false} tickLine={false} />
             <Tooltip content={<CustomTooltipYear />} cursor={{ fill: 'rgba(124, 77, 255, 0.04)' }} />
             <Legend iconType="circle" wrapperStyle={{ paddingTop: '10px', fontSize: 13, fontFamily: 'Inter' }} />
-            <Bar dataKey="Total" fill="#7c4dff" radius={[4, 4, 4, 4]} isAnimationActive />
+            <Bar dataKey="Planned" stackId="a" fill="url(#colorPlanned)" radius={[0, 0, 4, 4]} isAnimationActive />
+            <Bar dataKey="Emergency" stackId="a" fill="url(#colorEmergency)" isAnimationActive />
+            <Bar dataKey="Sick" stackId="a" fill="url(#colorSick)" isAnimationActive />
+            <Bar dataKey="HalfDay" stackId="a" fill="url(#colorHalfDay)" radius={[4, 4, 0, 0]} isAnimationActive />
           </BarChart>
         </ResponsiveContainer>
       </Box>

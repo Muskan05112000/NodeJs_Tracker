@@ -6,7 +6,7 @@ import { AppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 
 const NotificationPanel = () => {
-    const { fetchPendingRevocations, approveRevocation, declineRevocation } = useContext(AppContext);
+    const { fetchPendingRevocations, approveRevocation, declineRevocation, clearNotifications } = useContext(AppContext);
     const { user } = useAuth();
     const [notifications, setNotifications] = useState({
         pending: [],
@@ -27,8 +27,9 @@ const NotificationPanel = () => {
             const pending = data.filter(l => l.revocationRequest?.isRequested && l.status === 'Active');
 
             // For managers, history is all approved/rejected. For employees, it's their own (backend handles filtering)
-            const history = data.filter(l => l.status === 'Revoked');
-            const rejected = data.filter(l => l.revocationRequest?.isRejected);
+            // EXCLUDE DISMISSED
+            const history = data.filter(l => l.status === 'Revoked' && !l.notificationDismissed);
+            const rejected = data.filter(l => l.revocationRequest?.isRejected && !l.notificationDismissed);
 
             setNotifications({ pending, history, rejected });
         }
@@ -61,6 +62,13 @@ const NotificationPanel = () => {
         }
     };
 
+    const handleClearHistory = async () => {
+        setLoading(true);
+        await clearNotifications();
+        await loadNotifications();
+        setLoading(false);
+    };
+
     // Badge Count Logic
     // Manager: Pending Requests
     // Employee: Recent History (Approved/Rejected) count (optional, or just 0 to show icon)
@@ -70,6 +78,9 @@ const NotificationPanel = () => {
     const badgeCount = isManager ? notifications.pending.length : 0;
 
     const hasContent = notifications.pending.length > 0 || notifications.history.length > 0 || notifications.rejected.length > 0;
+
+    // Check if there is any history to clear
+    const hasHistory = notifications.history.length > 0 || notifications.rejected.length > 0;
 
     return (
         <>
@@ -214,9 +225,22 @@ const NotificationPanel = () => {
                             {/* HISTORY (Approved & Rejected) - Visible to All relevant */}
                             {(notifications.history.length > 0 || notifications.rejected.length > 0) && (
                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mt: notifications.pending.length > 0 ? 2 : 0 }}>
-                                    <Typography variant="caption" fontWeight="800" color="textSecondary" sx={{ px: 1, mt: 1, textTransform: 'uppercase', letterSpacing: 1 }}>
-                                        Recent Updates
-                                    </Typography>
+                                    <Box display="flex" justifyContent="space-between" alignItems="center" px={1} mt={1}>
+                                        <Typography variant="caption" fontWeight="800" color="textSecondary" sx={{ textTransform: 'uppercase', letterSpacing: 1 }}>
+                                            Recent Updates
+                                        </Typography>
+                                        {/* CLEAR HISTORY BUTTON - MANAGERS ONLY */}
+                                        {isManager && (
+                                            <Button
+                                                size="small"
+                                                onClick={handleClearHistory}
+                                                disabled={loading}
+                                                sx={{ fontSize: 10, textTransform: 'none', color: '#7c4dff', fontWeight: 700, minWidth: 'auto', p: 0.5 }}
+                                            >
+                                                Clear History
+                                            </Button>
+                                        )}
+                                    </Box>
 
                                     {/* Rejected List (Recent Rejections) - Render First */}
                                     {notifications.rejected.map((leave) => (

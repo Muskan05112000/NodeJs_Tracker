@@ -8,10 +8,13 @@ const leaveSchema = new mongoose.Schema({
     revokedAt: Date,
     revokedBy: String,
     revocationReason: String,
+    notificationDismissed: { type: Boolean, default: false }, // For clearing history
     revocationRequest: {
         isRequested: { type: Boolean, default: false },
         reason: { type: String, default: '' },
-        requestedAt: { type: Date }
+        requestedAt: { type: Date },
+        isRejected: { type: Boolean, default: false },
+        rejectedBy: String
     }
 });
 

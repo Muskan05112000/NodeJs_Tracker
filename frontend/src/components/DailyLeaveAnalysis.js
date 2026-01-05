@@ -1,7 +1,7 @@
 import React, { useContext, useState, useMemo } from "react";
 import { AppContext } from "../context/AppContext";
 import { Box, Typography, IconButton, Tooltip, Paper, Chip } from "@mui/material";
-import { format, addDays, subDays, isSameDay, addMonths, subMonths, addYears, subYears } from "date-fns";
+import { format, addDays, subDays, isSameDay, addMonths, subMonths, addWeeks, subWeeks, startOfWeek, endOfWeek, isWithinInterval } from "date-fns";
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
@@ -16,14 +16,14 @@ const DailyLeaveAnalysis = () => {
     // Navigation Helpers
     const handlePrev = () => {
         if (viewMode === 'day') setSelectedDate(subDays(selectedDate, 1));
+        else if (viewMode === 'week') setSelectedDate(subWeeks(selectedDate, 1));
         else if (viewMode === 'month') setSelectedDate(subMonths(selectedDate, 1));
-        else if (viewMode === 'year') setSelectedDate(subYears(selectedDate, 1));
     };
 
     const handleNext = () => {
         if (viewMode === 'day') setSelectedDate(addDays(selectedDate, 1));
+        else if (viewMode === 'week') setSelectedDate(addWeeks(selectedDate, 1));
         else if (viewMode === 'month') setSelectedDate(addMonths(selectedDate, 1));
-        else if (viewMode === 'year') setSelectedDate(addYears(selectedDate, 1));
     };
 
     // Data Processing
@@ -35,17 +35,19 @@ const DailyLeaveAnalysis = () => {
                 .map(l => ({ name: l.employee, type: l.type, isLeave: true }));
         }
 
-        // MONTH/YEAR VIEW: Aggregate counts
+        // WEEK/MONTH VIEW: Aggregate counts
         let filtered = [];
         if (viewMode === 'month') {
             filtered = activeLeaves.filter(leave => {
                 const d = new Date(leave.date);
                 return d.getMonth() === selectedDate.getMonth() && d.getFullYear() === selectedDate.getFullYear();
             });
-        } else { // year
+        } else if (viewMode === 'week') {
+            const start = startOfWeek(selectedDate, { weekStartsOn: 1 });
+            const end = endOfWeek(selectedDate, { weekStartsOn: 1 });
             filtered = activeLeaves.filter(leave => {
                 const d = new Date(leave.date);
-                return d.getFullYear() === selectedDate.getFullYear();
+                return isWithinInterval(d, { start, end });
             });
         }
 
@@ -66,7 +68,10 @@ const DailyLeaveAnalysis = () => {
     const dateLabel = useMemo(() => {
         if (viewMode === 'day') return format(selectedDate, "EEE, dd MMM yyyy");
         if (viewMode === 'month') return format(selectedDate, "MMMM yyyy");
-        return format(selectedDate, "yyyy");
+        // Week Label
+        const start = startOfWeek(selectedDate, { weekStartsOn: 1 });
+        const end = endOfWeek(selectedDate, { weekStartsOn: 1 });
+        return `${format(start, "dd MMM")} - ${format(end, "dd MMM yyyy")}`;
     }, [selectedDate, viewMode]);
 
     // Handle Copy to Clipboard
@@ -101,7 +106,7 @@ const DailyLeaveAnalysis = () => {
                         letterSpacing: 0.5
                     }}
                 >
-                    {viewMode === 'day' ? 'Daily Report' : viewMode === 'month' ? 'Monthly Summary' : 'Yearly Overview'}
+                    {viewMode === 'day' ? 'Daily Report' : viewMode === 'week' ? 'Weekly Summary' : 'Monthly Summary'}
                 </Typography>
 
                 <Tooltip title={copied ? "Copied!" : "Copy Report"} arrow>
@@ -113,7 +118,7 @@ const DailyLeaveAnalysis = () => {
 
             {/* View Modes */}
             <Box display="flex" gap={1} mb={2} p={0.5} bgcolor="#f5f5f5" borderRadius={2}>
-                {['days', 'month', 'year'].map((mode) => (
+                {['days', 'week', 'month'].map((mode) => (
                     <Box
                         key={mode}
                         onClick={() => setViewMode(mode === 'days' ? 'day' : mode)}

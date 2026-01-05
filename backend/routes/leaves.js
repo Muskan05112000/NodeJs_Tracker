@@ -118,8 +118,8 @@ router.put('/leaves/:id/decline-revocation', async (req, res) => {
 // GET Pending Revocations & History (Notifications)
 router.get('/leaves/pending-revocation', async (req, res) => {
     try {
-        const sixMonthsAgo = new Date();
-        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+        const twoMonthsAgo = new Date();
+        twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
 
         const isManager = req.user && (req.user.role === 'Manager' || req.user.role === 'Lead');
         const username = req.user ? req.user.username : null;
@@ -130,8 +130,8 @@ router.get('/leaves/pending-revocation', async (req, res) => {
         let query = {
             $or: [
                 { 'revocationRequest.isRequested': true, status: 'Active', date: { $lt: todayStr } }, // Pending (Past dates only)
-                { status: 'Revoked', revokedAt: { $gte: sixMonthsAgo } },    // Approved History
-                { 'revocationRequest.isRejected': true, 'revocationRequest.rejectedAt': { $gte: sixMonthsAgo } } // Rejected History
+                { status: 'Revoked', revokedAt: { $gte: twoMonthsAgo }, notificationDismissed: { $ne: true } },    // Approved History (Not cleared)
+                { 'revocationRequest.isRejected': true, 'revocationRequest.rejectedAt': { $gte: twoMonthsAgo }, notificationDismissed: { $ne: true } } // Rejected History (Not cleared)
             ]
         };
 
@@ -170,6 +170,29 @@ router.put('/leaves/:id/approve-revocation', async (req, res) => {
         res.json({ success: true, leave });
     } catch (err) {
         res.status(400).json({ error: err.message });
+    }
+});
+
+// CLEAR Notification History (Dismiss all resolved) - MANAGERS/LEADS ONLY
+router.post('/leaves/clear-notifications', async (req, res) => {
+    try {
+        // Enforce Role Check
+        if (!req.user || (req.user.role !== 'Manager' && req.user.role !== 'Lead')) {
+            return res.status(403).json({ error: 'Access denied. Only Leads/Managers can clear history globally.' });
+        }
+
+        const result = await Leave.updateMany(
+            {
+                $or: [
+                    { status: 'Revoked' },
+                    { 'revocationRequest.isRejected': true }
+                ]
+            },
+            { $set: { notificationDismissed: true } }
+        );
+        res.json({ success: true, updatedCount: result.modifiedCount });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 
