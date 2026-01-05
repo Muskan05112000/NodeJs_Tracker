@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { AppContext } from "../context/AppContext";
-import { Box, Typography, Paper } from "@mui/material";
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Legend } from "recharts";
+import { Box, Typography, Paper, ToggleButton, ToggleButtonGroup } from "@mui/material";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Legend, LineChart, Line } from "recharts";
 import { format } from "date-fns";
 
 const COLORS = ["#66bb6a", "#ef5350", "#fff176", "#8bc34a"];
@@ -100,7 +100,7 @@ function AnalysisCharts({ month, year, type }) {
           <Paper sx={tooltipStyle}>
             <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>{label}</Typography>
             {payload.map((entry) => (
-              <div key={entry.name} style={{ color: entry.fill, fontWeight: 600, fontSize: 14, margin: '2px 0' }}>
+              <div key={entry.name} style={{ color: entry.stroke || entry.fill, fontWeight: 600, fontSize: 14, margin: '2px 0' }}>
                 ● {entry.name}: <span style={{ fontWeight: 800 }}>{entry.value}</span>
               </div>
             ))}
@@ -109,38 +109,86 @@ function AnalysisCharts({ month, year, type }) {
       }
       return null;
     };
+
+    const [chartType, setChartType] = React.useState('bar'); // 'bar', 'line'
+
     return (
-      <Box sx={{ height: '100%', width: '100%', minHeight: 350 }}>
-        <Typography
-          sx={{
-            fontWeight: 900,
-            fontSize: '1.4rem',
-            fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif',
-            color: '#5e35b1',
-            letterSpacing: 0.5,
-            mb: 2,
-            textAlign: 'left'
-          }}
-        >
-          Monthly Leave Counts ({year})
-        </Typography>
+      <Box sx={{ height: '100%', width: '100%', minHeight: 400 }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <Typography
+            sx={{
+              fontWeight: 900,
+              fontSize: '1.4rem',
+              fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif',
+              color: '#5e35b1',
+              letterSpacing: 0.5,
+              textAlign: 'left'
+            }}
+          >
+            Monthly Leave Counts ({year})
+          </Typography>
+
+          <ToggleButtonGroup
+            value={chartType}
+            exclusive
+            onChange={(e, val) => val && setChartType(val)}
+            size="small"
+            sx={{
+              height: 32,
+              '& .MuiToggleButton-root': {
+                fontWeight: 700,
+                fontSize: '0.75rem',
+                color: '#424242',
+                borderColor: '#e0e0e0',
+                '&.Mui-selected': {
+                  bgcolor: '#673ab7',
+                  color: '#fff',
+                  '&:hover': { bgcolor: '#5e35b1' }
+                }
+              }
+            }}
+          >
+            <ToggleButton value="bar">📊 Bar</ToggleButton>
+            <ToggleButton value="line">📈 Line</ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
+
         <ResponsiveContainer width="100%" height="85%">
-          <BarChart data={monthlyCounts} barGap={2} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-            <XAxis dataKey="month" tick={{ fontWeight: 600, fontSize: 13, fontFamily: 'Inter, Roboto, Arial, sans-serif' }} axisLine={{ stroke: '#eee' }} tickLine={false} />
-            <YAxis
-              tick={{ fontWeight: 600, fontSize: 13, fontFamily: 'Inter, Roboto, Arial, sans-serif' }}
-              axisLine={false}
-              tickLine={false}
-              domain={[0, yMax]}
-              ticks={yTicks}
-            />
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(124, 77, 255, 0.04)' }} />
-            <Legend iconType="circle" wrapperStyle={{ paddingTop: '10px', fontSize: 13, fontFamily: 'Inter' }} />
-            <Bar dataKey="Planned" fill="#66bb6a" radius={[4, 4, 4, 4]} isAnimationActive />
-            <Bar dataKey="Emergency" fill="#ef5350" radius={[4, 4, 4, 4]} isAnimationActive />
-            <Bar dataKey="Sick" fill="#fff176" radius={[4, 4, 4, 4]} isAnimationActive />
-            <Bar dataKey="HalfDay" fill="#8bc34a" radius={[4, 4, 4, 4]} isAnimationActive />
-          </BarChart>
+          {chartType === 'bar' ? (
+            <BarChart data={monthlyCounts} barGap={2} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <XAxis dataKey="month" tick={{ fontWeight: 600, fontSize: 13, fontFamily: 'Inter, Roboto, Arial, sans-serif' }} axisLine={{ stroke: '#eee' }} tickLine={false} />
+              <YAxis
+                tick={{ fontWeight: 600, fontSize: 13, fontFamily: 'Inter, Roboto, Arial, sans-serif' }}
+                axisLine={false}
+                tickLine={false}
+                domain={[0, yMax]}
+                ticks={yTicks}
+              />
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(124, 77, 255, 0.04)' }} />
+              <Legend iconType="circle" wrapperStyle={{ paddingTop: '10px', fontSize: 13, fontFamily: 'Inter' }} />
+              <Bar dataKey="Planned" fill="#66bb6a" radius={[4, 4, 4, 4]} isAnimationActive />
+              <Bar dataKey="Emergency" fill="#ef5350" radius={[4, 4, 4, 4]} isAnimationActive />
+              <Bar dataKey="Sick" fill="#fff176" radius={[4, 4, 4, 4]} isAnimationActive />
+              <Bar dataKey="HalfDay" fill="#8bc34a" radius={[4, 4, 4, 4]} isAnimationActive />
+            </BarChart>
+          ) : (
+            <LineChart data={monthlyCounts} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <XAxis dataKey="month" tick={{ fontWeight: 600, fontSize: 13, fontFamily: 'Inter, Roboto, Arial, sans-serif' }} axisLine={{ stroke: '#eee' }} tickLine={false} />
+              <YAxis
+                tick={{ fontWeight: 600, fontSize: 13, fontFamily: 'Inter, Roboto, Arial, sans-serif' }}
+                axisLine={false}
+                tickLine={false}
+                domain={[0, yMax]}
+                ticks={yTicks}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend iconType="plainline" wrapperStyle={{ paddingTop: '10px', fontSize: 13, fontFamily: 'Inter' }} />
+              <Line type="monotone" dataKey="Planned" stroke="#66bb6a" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+              <Line type="monotone" dataKey="Emergency" stroke="#ef5350" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+              <Line type="monotone" dataKey="Sick" stroke="#fff176" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+              <Line type="monotone" dataKey="HalfDay" stroke="#8bc34a" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+            </LineChart>
+          )}
         </ResponsiveContainer>
       </Box>
     );

@@ -124,9 +124,12 @@ router.get('/leaves/pending-revocation', async (req, res) => {
         const isManager = req.user && (req.user.role === 'Manager' || req.user.role === 'Lead');
         const username = req.user ? req.user.username : null;
 
+        const today = new Date();
+        const todayStr = format(today, 'yyyy-MM-dd');
+
         let query = {
             $or: [
-                { 'revocationRequest.isRequested': true, status: 'Active' }, // Pending
+                { 'revocationRequest.isRequested': true, status: 'Active', date: { $lt: todayStr } }, // Pending (Past dates only)
                 { status: 'Revoked', revokedAt: { $gte: sixMonthsAgo } },    // Approved History
                 { 'revocationRequest.isRejected': true, 'revocationRequest.rejectedAt': { $gte: sixMonthsAgo } } // Rejected History
             ]

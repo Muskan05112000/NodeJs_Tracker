@@ -13,11 +13,18 @@ export default function DonutChartOnly({ startMonth, endMonth, year }) {
   const { activeLeaves } = useContext(AppContext);
   const [viewMode, setViewMode] = useState('month'); // 'day', 'month', 'year'
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [chartType, setChartType] = useState('donut'); // 'donut', 'pie'
 
   // Handle View Change
   const handleViewChange = (event, newView) => {
     if (newView !== null) {
       setViewMode(newView);
+    }
+  };
+
+  const handleChartTypeChange = (event, newType) => {
+    if (newType !== null) {
+      setChartType(newType);
     }
   };
 
@@ -47,7 +54,7 @@ export default function DonutChartOnly({ startMonth, endMonth, year }) {
   };
 
   return (
-    <Box sx={{ height: '100%', width: '100%', minHeight: 350, display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ height: '100%', width: '100%', minHeight: 400, display: 'flex', flexDirection: 'column' }}>
 
       {/* Header with Controls */}
       <Box display="flex" flexDirection="column" gap={2} mb={2}>
@@ -65,30 +72,58 @@ export default function DonutChartOnly({ startMonth, endMonth, year }) {
             {getTitle()}
           </Typography>
 
-          <ToggleButtonGroup
-            value={viewMode}
-            exclusive
-            onChange={handleViewChange}
-            size="small"
-            sx={{
-              height: 32,
-              '& .MuiToggleButton-root': {
-                fontWeight: 700,
-                fontSize: '0.75rem',
-                color: '#7c4dff',
-                borderColor: '#b39ddb',
-                '&.Mui-selected': {
-                  bgcolor: '#7c4dff',
-                  color: '#fff',
-                  '&:hover': { bgcolor: '#651fff' }
+          <Box display="flex" gap={1}>
+            {/* Chart Type Toggle */}
+            <ToggleButtonGroup
+              value={chartType}
+              exclusive
+              onChange={handleChartTypeChange}
+              size="small"
+              sx={{
+                height: 32,
+                '& .MuiToggleButton-root': {
+                  fontWeight: 700,
+                  fontSize: '0.75rem',
+                  color: '#424242',
+                  borderColor: '#e0e0e0',
+                  '&.Mui-selected': {
+                    bgcolor: '#673ab7',
+                    color: '#fff',
+                    '&:hover': { bgcolor: '#5e35b1' }
+                  }
                 }
-              }
-            }}
-          >
-            <ToggleButton value="day">Day</ToggleButton>
-            <ToggleButton value="month">Month</ToggleButton>
-            <ToggleButton value="year">Year</ToggleButton>
-          </ToggleButtonGroup>
+              }}
+            >
+              <ToggleButton value="donut">🍩</ToggleButton>
+              <ToggleButton value="pie">🥧</ToggleButton>
+            </ToggleButtonGroup>
+
+            {/* Time View Toggle */}
+            <ToggleButtonGroup
+              value={viewMode}
+              exclusive
+              onChange={handleViewChange}
+              size="small"
+              sx={{
+                height: 32,
+                '& .MuiToggleButton-root': {
+                  fontWeight: 700,
+                  fontSize: '0.75rem',
+                  color: '#7c4dff',
+                  borderColor: '#b39ddb',
+                  '&.Mui-selected': {
+                    bgcolor: '#7c4dff',
+                    color: '#fff',
+                    '&:hover': { bgcolor: '#651fff' }
+                  }
+                }
+              }}
+            >
+              <ToggleButton value="day">Day</ToggleButton>
+              <ToggleButton value="month">Month</ToggleButton>
+              <ToggleButton value="year">Year</ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
         </Box>
 
         {/* Date Navigation for Day View */}
@@ -117,8 +152,9 @@ export default function DonutChartOnly({ startMonth, endMonth, year }) {
               nameKey="name"
               cx="50%"
               cy="50%"
-              innerRadius={80}
+              innerRadius={chartType === 'donut' ? 80 : 0}
               outerRadius={110}
+              paddingAngle={chartType === 'donut' ? 0 : 2}
               isAnimationActive={true}
             >
               {donutData.map((entry, idx) => (
@@ -128,11 +164,13 @@ export default function DonutChartOnly({ startMonth, endMonth, year }) {
             <Tooltip
               contentStyle={{ borderRadius: 8, fontWeight: 700 }}
             />
-            {/* Centered Text */}
-            <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" fill="#333">
-              <tspan x="50%" dy="-10" fontSize="14" fontWeight="600">Total</tspan>
-              <tspan x="50%" dy="24" fontSize="28" fontWeight="800" fill="#7c4dff">{filteredLeaves.length}</tspan>
-            </text>
+            {/* Centered Text for DONUT only */}
+            {chartType === 'donut' && (
+              <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" fill="#333">
+                <tspan x="50%" dy="-10" fontSize="14" fontWeight="600">Total</tspan>
+                <tspan x="50%" dy="24" fontSize="28" fontWeight="800" fill="#7c4dff">{filteredLeaves.length}</tspan>
+              </text>
+            )}
           </PieChart>
         </ResponsiveContainer>
       </Box>
